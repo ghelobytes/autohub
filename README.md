@@ -1,19 +1,17 @@
-Node.js on OpenShift
-====================
+# _Project_
 
-This git repository helps you get up and running quickly w/ a node.js installation
-on OpenShift. 
- 
-Running on OpenShift
-----------------------------
+_Description: A demo project called AuthoHub._
 
-Create an account at http://www.openshift.com/
+## Project Setup
 
-Create a nodejs-0.6 application (you can call your application whatever you want)
+1. _Depends on nodejs, expressjs, etc._
+2. _Git clone to a suitable environment with the said dependencies._
 
-    rhc app create mynodejs nodejs-0.6 --from-code=https://github.com/openshift-quickstart/nodejs-example.git
+## Testing
 
-That's it, you can now checkout your application at:
+_What's testing?_
 
-    http://mynodejs-$yournamespace.rhcloud.com
 
+## License
+
+_Don't go there..._
