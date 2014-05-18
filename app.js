@@ -16,7 +16,8 @@ app.use(bodyParser());
 // database
 var mysql = require ('mysql');
 var pool = mysql.createPool({
-	host: 'localhost',
+	//host: 'localhost',
+	host: process.env.OPENSHIFT_MYSQL_DB_HOST,
 	user: 'demo',
 	password: 'demo',
 	database: 'autohub'
