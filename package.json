@@ -1,0 +1,15 @@
+{
+	"name" : "demo",
+	"description" : "a demo app built using nodejs and extjs",
+	"version" : "0.0.1",
+	"private" : true,
+	"dependencies" : {
+		"express" : "4.2.0",
+		"mysql" : "2.2.0",
+		"body-parser" : "1.2.0"
+	},
+	"scripts": {
+	  "start": "node app.js"
+	},
+	"main": "app.js"
+}
