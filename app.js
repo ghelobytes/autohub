@@ -7,27 +7,70 @@ var router = express.Router();
 var staticDir = __dirname + '/static';
 
 var bodyParser = require('body-parser');
+var session = require('express-session');
+var cookieParser = require('cookie-parser');
 
 
 //config
 app.use(bodyParser());
-
+//app.use(cookieParser());
+//app.use(session({secret:'mysecret', key: 'mykey', cookie: {secure: true}}));
+app.use(cookieParser('mysecret'));
+app.use(session());
 
 // database
 var mysql = require ('mysql');
 var pool = mysql.createPool({
-	//host: 'localhost',
-	host: process.env.OPENSHIFT_MYSQL_DB_HOST,
+	host: 'localhost',
+	//host: process.env.OPENSHIFT_MYSQL_DB_HOST,
 	user: 'demo',
 	password: 'demo',
 	database: 'autohub'
 });
+//
 
+/**
+app.get('/debug',function(req, res){
 
+	if(!req.session.user && req.query.user){
+		req.session.user = req.query.user;
+	}
+	
+	if(req.session.user){
+		res.end('current user is ' + req.session.user );
+	} else {
+		res.end('not authenticated!');
+		//res.json(req.session);
+	}
+	
+});
+
+app.get('/app', function(req, res, next) {
+	if(req.session.user) {
+		next();
+	} else {
+		res.redirect('/debug');
+	}
+});
+*/
+
+app.post('/auth', function(req, res, next){
+	var sql = 'select username, fullname from users where username = ? and password = ?';
+	console.log(req.body.username, req.body.password);
+	pool.query(sql, [req.body.username, req.body.password], function(err, rows) {
+		res.json((err?err:rows));
+	});
+	
+});
+
+app.use(function(req,res, next){
+	console.log('app:', req.method, req.url);
+	next();
+});
 
 // log request
 router.use(function(req, res, next){
-	console.log(req.method, req.url);
+	console.log('router:', req.method, req.url);
 	next();
 });
 

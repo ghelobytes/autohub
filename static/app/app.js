@@ -2,6 +2,8 @@ Ext.Ajax.disableCaching = false;
 
 Ext.onReady(function () {
 	
+	var currentMember;
+	
 	// define a model for member
 	Ext.define('Member', {
 		extend: 'Ext.data.Model',
@@ -13,6 +15,63 @@ Ext.onReady(function () {
 	});
 
 
+	var loginPanel = Ext.create('Ext.form.Panel', {
+		id: 'loginPanel',
+        frame: true,
+        title: 'Enter credentials',
+        margin: 100,
+        bodyPadding: 10,
+        fieldDefaults: {
+            labelAlign: 'left',
+            labelWidth: 120,
+            anchor: '100%'
+        },
+        items: [
+			{
+	            xtype: 'textfield',
+				id: 'txtLoginUsername',
+				name: 'id',
+	            fieldLabel: 'Username'
+	        }, 
+			{
+	            xtype: 'textfield',
+				id: 'txtLoginPassword',
+				name: 'orNo',
+	            fieldLabel: 'Password',
+				inputType: 'password'
+	        }
+		],
+        buttons: [
+			{
+	            text: 'Login',
+	            handler: function() {
+					Ext.Ajax.request({
+						method: 'POST',
+						url: '/auth',
+						params: {
+							username: Ext.getCmp('txtLoginUsername').value,
+							password: Ext.getCmp('txtLoginPassword').value
+						},
+						success: function(response, opts) {
+							var result = Ext.decode(response.responseText);
+							if(result.length == 1){
+								mainPanel.switch(searchPanel);
+							} else {
+								Ext.MessageBox.show({
+									title: 'Authentication error!', 
+									msg: 'Invalid username or password.',
+									icon: Ext.MessageBox.WARNING,
+									buttons: Ext.MessageBox.OK
+								});
+							}
+						}
+					});
+	            }
+	   	 	}
+		]
+    });
+	
+	
 	var addPointsPanel = Ext.create('Ext.form.Panel', {
 		id: 'addPointsPanel',
         frame: true,
@@ -232,13 +291,15 @@ Ext.onReady(function () {
 	            text: 'Add points',
 	            handler: function() {
 					mainPanel.switch(addPointsPanel);
-	            }
+	            },
+				hidden: true
 	   	 	},
 			{
 	            text: 'Redeem points',
 	            handler: function() {
 				
-	            }
+	            },
+				hidden: true
 	   	 	},
 			{
 	            text: 'Update details',
@@ -252,7 +313,8 @@ Ext.onReady(function () {
 	            text: 'Transfer points',
 	            handler: function() {
 				
-	            }
+	            },
+				hidden: true
 	   	 	},
 			{
 	            text: 'Close',
@@ -435,11 +497,14 @@ Ext.onReady(function () {
 			defaultMargins: '50 140 50 140'
 	    },
 		activeItem: 0,
-		items: [searchPanel, searchResultPanel, memberPanel, memberEditPanel, addPointsPanel],
+		items: [loginPanel, searchPanel, searchResultPanel, memberPanel, memberEditPanel, addPointsPanel],
 		switch: function(panel){
+			
 			Ext.getCmp('mainPanel').getLayout().setActiveItem(panel);
+		
 		}
 	};
+
 	
 	Ext.create('Ext.container.Viewport', {
 		id: 'viewport',
