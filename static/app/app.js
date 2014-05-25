@@ -396,8 +396,10 @@ Ext.onReady(function () {
 			
 			var orAmount = parseFloat(txtRedeemPointsORAmount.value);
 			var cash = parseFloat(txtRedeemPointsCashPaid.value);
-			var pointsRequired = parseInt(orAmount - cash);
-			var newPoints = parseInt(pointsRequired*100);
+			var pointsRequired = parseInt((orAmount - cash)*100);
+			var currentPoints = parseInt(txtRedeemPointsCurrentPoints.value);
+			var newPoints = parseInt(currentPoints - pointsRequired);
+			
 			txtRedeemPointsPointsRequired.setValue(pointsRequired);
 			txtRedeemPointsNewPointsBalance.setValue(newPoints);
 			
