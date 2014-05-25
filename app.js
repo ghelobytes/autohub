@@ -90,6 +90,7 @@ router.get('/about', function(req, res){
 });
 
 
+
 // CRUD, LIST for table [members]
 // LIST
 router.get('/members', function(req, res){
@@ -114,9 +115,9 @@ router.get('/members', function(req, res){
 // CREATE
 router.post('/members', function(req, res){
 	var member = req.body;
-	pool.query('insert into members values(?,?,?,?,?,?);', 
+	console.log("POST", member);
+	pool.query('insert into members(lastname, firstname, mobile, email, pointsBalance) values(?,?,?,?,?);', 
 		[
-			member.id,
 			member.lastname,
 			member.firstname,
 			member.mobile,
@@ -124,10 +125,14 @@ router.post('/members', function(req, res){
 			member.pointsBalance
 		], 
 		function(err, rows){
+			member['id'] = rows.insertId;	
 			res.json((err?err:member));
 		}
 	);
+	console.log(member);
 });
+
+
 // READ
 router.get('/members/:id', function(req, res){
 	var id = req.params.id;
@@ -135,10 +140,15 @@ router.get('/members/:id', function(req, res){
 		res.json((err?err:rows));
 	});
 });
+
+
 // UPDATE
 router.put('/members/:id', function(req, res){
+	
+	/*
 	var id = req.params.id;
 	var member = req.body;
+	console.log(member);
 	pool.query('update members set lastname=?, firstname=?, mobile=?, email=?, pointsBalance=? where id = ?;', 
 		[
 			member.lastname,
@@ -152,7 +162,40 @@ router.put('/members/:id', function(req, res){
 			res.json((err?err:member));
 		}
 	);
+	*/
+
+
+	//var id = req.params.id;
+	var member = req.body;
+	
+	console.log(member);
+	
+	// generate update statement
+	var sql = '';
+	var params = [];
+	
+	for(column in member) {
+		if(column != 'id'){
+			sql += column + '=?,';
+			params.push(member[column]);
+		}		
+	}
+	sql = 'update members set ' + sql.substring(0,sql.length-1) + ' where id=?;';
+	params.push(member.id);
+	
+	pool.query(
+		sql, 
+		params, 
+		function(err, rows){
+			res.json((err?err:member));
+		}
+	);
+
+	
 });
+
+
+
 // DELETE
 router.delete('/members/:id',function(req, res){
 	var id = req.params.id;
@@ -163,11 +206,6 @@ router.delete('/members/:id',function(req, res){
 		}
 	);	
 });
-
-
-
-
-
 
 
 
