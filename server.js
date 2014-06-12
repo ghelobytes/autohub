@@ -13,15 +13,14 @@ var cookieParser = require('cookie-parser');
 
 //config
 app.use(bodyParser());
-//app.use(cookieParser());
-//app.use(session({secret:'mysecret', key: 'mykey', cookie: {secure: true}}));
-app.use(cookieParser('mysecret'));
-app.use(session());
+app.use(cookieParser()) // required before session.
+app.use(session({
+    secret: '@ut0hub'
+}))
 
 // database
 var mysql = require ('mysql');
 var pool = mysql.createPool({
-	//host: 'localhost',
 	host: process.env.OPENSHIFT_MYSQL_DB_HOST || 'localhost',
 	user: 'demo',
 	password: 'demo',
@@ -58,15 +57,33 @@ app.post('/auth', function(req, res, next){
 	var sql = 'select username, fullname from users where username = ? and password = ?';
 	console.log(req.body.username, req.body.password);
 	pool.query(sql, [req.body.username, req.body.password], function(err, rows) {
-		res.json((err?err:rows));
+		var reply = (err?err:rows);
+		res.json(reply);
+		if(rows.length > 0){
+			// log session
+			req.session.user = {
+				username: req.body.username
+			};
+			console.log(JSON.stringify(req.session.user) + ' recorded in session');
+		}
 	});
 	
+});
+
+app.get('/auth/user', function(req, res){
+	if(req.session.user){
+		res.json(req.session.user);
+	} else {
+		res.json({ message: 'empty session'});
+	}
 });
 
 app.use(function(req,res, next){
 	console.log('app:', req.method, req.url);
 	next();
 });
+
+
 
 // log request
 router.use(function(req, res, next){
@@ -88,6 +105,17 @@ router.get('/about', function(req, res){
 	console.log('Requested for about.html');
 	res.sendfile(staticDir + '/about.html');
 });
+
+// 
+router.get('/transaction', function(req, res){
+	pool.query('select * from transaction;', null, function(err, rows) {
+		res.json((err?err:rows));
+	});
+});
+
+router.get('/app/transaction', function(req, res){
+	res.sendfile(staticDir + '/app/transaction.html');
+})
 
 
 
@@ -112,6 +140,8 @@ router.get('/members', function(req, res){
 		res.json((err?err:rows));
 	});
 });
+
+
 // CREATE
 router.post('/members', function(req, res){
 	var member = req.body;
@@ -126,7 +156,10 @@ router.post('/members', function(req, res){
 		], 
 		function(err, rows){
 			member['id'] = rows.insertId;	
+			
+			logTransaction('INSERT', req.session.user, member);
 			res.json((err?err:member));
+			
 		}
 	);
 	console.log(member);
@@ -144,57 +177,60 @@ router.get('/members/:id', function(req, res){
 
 // UPDATE
 router.put('/members/:id', function(req, res){
-	
-	/*
-	var id = req.params.id;
-	var member = req.body;
-	console.log(member);
-	pool.query('update members set lastname=?, firstname=?, mobile=?, email=?, pointsBalance=? where id = ?;', 
-		[
-			member.lastname,
-			member.firstname,
-			member.mobile,
-			member.email,
-			member.pointsBalance,
-			member.id
-		], 
-		function(err, rows){
-			res.json((err?err:member));
-		}
-	);
-	*/
 
-
-	//var id = req.params.id;
 	var member = req.body;
-	
-	console.log(member);
 	
 	// generate update statement
 	var sql = '';
+	var sql2 = '';
 	var params = [];
 	
 	for(column in member) {
 		if(column != 'id'){
 			sql += column + '=?,';
+			sql2 += column + ',';
 			params.push(member[column]);
 		}		
 	}
 	sql = 'update members set ' + sql.substring(0,sql.length-1) + ' where id=?;';
+	sql2 = 'select ' + sql2.substring(0,sql2.length-1) + ' from members where id=?'; 
 	params.push(member.id);
 	
+	// record transaction 
+	// remember old values before update
 	pool.query(
-		sql, 
-		params, 
+		sql2,
+		[member.id],
 		function(err, rows){
-			res.json((err?err:member));
+			var before = rows[0];
+			
+			// perform actual update
+			pool.query(
+				sql, 
+				params, 
+				function(err, rows){
+			
+					var log = {
+						before: before,
+						after: member
+					}
+					logTransaction('UPDATE', req.session.user, log);
+			
+					res.json((err?err:member));
+			
+				}
+			);
+			
+			
 		}
 	);
+	
+	
+	
+	
 
 	
 });
-
-
 
 // DELETE
 router.delete('/members/:id',function(req, res){
@@ -202,6 +238,7 @@ router.delete('/members/:id',function(req, res){
 	pool.query('delete from members where id = ?;', 
 		[ id ], 
 		function(err, rows){
+			logTransaction('DELETE', req.session.user, {id: id});
 			res.json((err?err:member));
 		}
 	);	
@@ -210,7 +247,23 @@ router.delete('/members/:id',function(req, res){
 
 
 
+/////////////////
 
+function logTransaction(type, user, data){	
+	var username = user.username;
+	pool.query('insert into transaction(username, type, data, stamp) values(?,?,?,NOW());', 
+		[
+			username,
+			type,
+			JSON.stringify(data)
+		], 
+		function(err, rows){
+			console.log((err?err:rows));		
+		}
+	);
+}
+
+////////////////
 
 
 

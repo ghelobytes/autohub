@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <title>AutoHub - Demo</title>
+	<!--
+    <link rel="stylesheet" href="css/ext-theme-neptune-all.css"/>
+    <script src="ext/ext-all-debug.js"></script>
+	-->
+		
+	<link rel="stylesheet" type="text/css" href="ext/packages/ext-theme-crisp/build/resources/ext-theme-crisp-all-debug.css">
+	<script type="text/javascript" src="ext/ext-all-debug.js"></script>
+	
+    <script>
+	
+	Ext.onReady(function(){
+		
+		var store = Ext.create('Ext.data.Store',{
+			fields: [ 'username', 'type', 'data',
+					  { 
+						  name: 'stamp',
+						  type: 'date'
+				  	  }
+			],
+		    proxy: {
+	            type: 'ajax',
+	            url: '/transaction',
+	            reader: {
+	                type: 'json'
+	            }
+	        },
+			autoLoad: true
+		
+		});
+		
+		Ext.create('Ext.grid.Panel', {
+			xtype: 'grid',
+			title: 'Autohub - Transaction history',
+			renderTo: Ext.getBody(),
+			store: store,
+			columns: [
+				{ text: 'Stamp', dataIndex: 'stamp', xtype: 'datecolumn',   format:'m-d-Y g:i A', width: 180},
+				{ text: 'User', dataIndex: 'username'},
+				{ text: 'Type', dataIndex: 'type'},
+				{ 
+					text: 'Data', 
+					dataIndex: 'data', 
+					renderer: function(val){
+					    return '<div style="white-space:normal !important;">'+ val +'</div>';
+					},
+					flex: 1
+				}
+			]
+		});
+		
+	});
+	
+	
+	</script>
+	
+</head>
+<body>
+</body>
+</html>
