@@ -1,4 +1,4 @@
-Ext.Loader.setConfig({ disableCaching:false });
+
 
 Ext.onReady(function () {
 	
@@ -17,9 +17,11 @@ Ext.onReady(function () {
 					{name: 'pointsBalance', type:'int'},
 					{name: 'orNumber', type: 'string'}, 
 					{name: 'orAmount', type: 'float'}, 
-					{name: 'cashPaid', type:'float'} 
+					{name: 'cashPaid', type:'float'},
+					{name: 'type', type: 'string'} 
 				],									
 		proxy: {
+			disableCaching: true,
 			type: 'rest',
 			url : '/members'
 		}
@@ -232,7 +234,12 @@ Ext.onReady(function () {
 			var txtAddPointsNewPointsBalance = Ext.getCmp('txtAddPointsNewPointsBalance');
 			
 			var cash = txtAddPointsCashPaid.value;
-			var points = parseInt(cash / 100);
+			
+			// if E then points = cash/20
+			// if P then points = cash/15
+			var type = addPointsPanel.getForm().getRecord().data.type;
+		
+			var points = parseInt(cash / (type=='P'?15:20));
 			var newPoints = parseFloat(txtAddPointsCurrentPoints.value) + parseFloat(points);
 			txtAddPointsCalculatedPoints.setValue(points);
 			txtAddPointsNewPointsBalance.setValue(newPoints);
@@ -442,6 +449,16 @@ Ext.onReady(function () {
 		            fieldLabel: 'First Name'
 		        }, 
 				{
+					xtype: 'combo',
+					fieldLabel: 'Type',
+					editable: false,
+					store: [
+						['E', 'Elite'],
+						['P', 'Platinum Elite']
+					],
+					name: 'type'
+				},
+				{
 		            xtype: 'textfield',
 					id: 'txtEditMobile',
 					name: 'mobile',
@@ -634,6 +651,17 @@ Ext.onReady(function () {
 				readOnly: true
 	        }, 
 			{
+				xtype: 'combo',
+				fieldLabel: 'Type',
+				editable: false,
+				store: [
+					['E', 'Elite'],
+					['P', 'Platinum Elite']
+				],
+				name: 'type',
+				readOnly: true
+			},
+			{
 	            xtype: 'textfield',
 				id: 'txtMobile',
 				name: 'mobile',
@@ -671,6 +699,17 @@ Ext.onReady(function () {
 	            text: 'Redeem points',
 	            handler: function() {
 					var id = this.up().up().getForm().getValues()['id'];
+					var balance = this.up().up().getForm().getValues()['balance'];
+					
+					if(!(parseFloat(balance) >= 500)){
+						Ext.Msg.show({
+							title:'Sorry!', 
+							msg:'To redeem points, balance must be greater than 500 points.',
+							buttons: Ext.Msg.OK,
+						});
+						return;
+					}
+					
 					redeemPointsPanel.reset();	
 					redeemPointsPanel.loadMember(id, function(){
 						mainPanel.switch(redeemPointsPanel);
@@ -843,7 +882,9 @@ Ext.onReady(function () {
 							params[field.name] = field.value;
 					}
 					if(Object.keys(params).length > 0){
+						
 						Ext.Ajax.request({
+							disableCaching: false,
 							method: 'GET',
 							url: '/members',
 							params: params,
@@ -889,10 +930,8 @@ Ext.onReady(function () {
 		title: 'Autohub Group Loyalty Program',
 		width: 900,
 		height: 550,
-	    layout: {
-			type: 'card',
-			defaultMargins: '50 140 50 140'
-	    },
+		bodyStyle: 'padding: 50px',
+	    layout: 'card',
 		activeItem: 0,
 		items: [loginPanel, searchPanel, searchResultPanel, memberPanel, memberEditPanel, addPointsPanel],
 		switch: function(panel){

@@ -136,6 +136,7 @@ router.get('/members', function(req, res){
 		filter = filter.substring(0,filter.length-5);
 		sql = sql + ' where ' + filter;
 	} 
+	console.log(sql)
 	pool.query(sql, params, function(err, rows) {
 		res.json((err?err:rows));
 	});
@@ -146,13 +147,14 @@ router.get('/members', function(req, res){
 router.post('/members', function(req, res){
 	var member = req.body;
 	console.log("POST", member);
-	pool.query('insert into members(lastname, firstname, mobile, email, pointsBalance) values(?,?,?,?,?);', 
+	pool.query('insert into members(lastname, firstname, mobile, email, pointsBalance, type) values(?,?,?,?,?,?);', 
 		[
 			member.lastname,
 			member.firstname,
 			member.mobile,
 			member.email,
-			member.pointsBalance
+			member.pointsBalance,
+			member.type
 		], 
 		function(err, rows){
 			member['id'] = rows.insertId;	
@@ -203,6 +205,7 @@ router.put('/members/:id', function(req, res){
 		[member.id],
 		function(err, rows){
 			var before = rows[0];
+			before.id = member.id;
 			
 			// perform actual update
 			pool.query(
