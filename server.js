@@ -79,7 +79,7 @@ app.get('/auth/user', function(req, res){
 });
 
 app.use(function(req,res, next){
-	console.log('app:', req.method, req.url);
+	//console.log('app:', req.method, req.url);
 	next();
 });
 
@@ -87,7 +87,7 @@ app.use(function(req,res, next){
 
 // log request
 router.use(function(req, res, next){
-	console.log('router:', req.method, req.url);
+	//console.log('router:', req.method, req.url);
 	next();
 });
 
@@ -129,14 +129,14 @@ router.get('/members', function(req, res){
 		var filter = '';
 		
 		for(var param in req.query){
-			//filter += param + " LIKE '%"  + req.query[param] + "' and ";
-			filter += param + " = ? and ";
+			filter += param + " LIKE '%"  + req.query[param] + "%' and ";
+			//filter += param + " = ? and ";
 			params.push(req.query[param]);
  		}
 		filter = filter.substring(0,filter.length-5);
 		sql = sql + ' where ' + filter;
 	} 
-	console.log(sql)
+	console.log("GET", sql)
 	pool.query(sql, params, function(err, rows) {
 		res.json((err?err:rows));
 	});
@@ -147,14 +147,19 @@ router.get('/members', function(req, res){
 router.post('/members', function(req, res){
 	var member = req.body;
 	console.log("POST", member);
-	pool.query('insert into members(lastname, firstname, mobile, email, pointsBalance, type) values(?,?,?,?,?,?);', 
+	pool.query('insert into members(lastname, firstname, middlename, mobile, mobile2, email, pointsBalance, type, cardNumber, address, comments) values(?,?,?,?,?,?,?,?,?,?,?);', 
 		[
 			member.lastname,
 			member.firstname,
+			member.middlename,
 			member.mobile,
+			member.mobile2,
 			member.email,
 			member.pointsBalance,
-			member.type
+			member.type,
+			member.cardNumber,
+			member.address,
+			member.comments
 		], 
 		function(err, rows){
 			member['id'] = rows.insertId;	
@@ -181,6 +186,8 @@ router.get('/members/:id', function(req, res){
 router.put('/members/:id', function(req, res){
 
 	var member = req.body;
+	console.log("UPDATE", member);
+	
 	
 	// generate update statement
 	var sql = '';
@@ -195,7 +202,7 @@ router.put('/members/:id', function(req, res){
 		}		
 	}
 	sql = 'update members set ' + sql.substring(0,sql.length-1) + ' where id=?;';
-	sql2 = 'select ' + sql2.substring(0,sql2.length-1) + ' from members where id=?'; 
+	sql2 = 'select ' + sql2.substring(0,sql2.length-1) + ' from members where id=?;'; 
 	params.push(member.id);
 	
 	// record transaction 

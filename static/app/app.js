@@ -12,13 +12,18 @@ Ext.onReady(function () {
 					{name: 'id', type: 'int'}, 
 					{name: 'lastname', type: 'string'}, 
 					{name: 'firstname', type: 'string'}, 
+					{name: 'middlename', type: 'string'}, 
 					{name: 'mobile', type: 'string'}, 
+					{name: 'mobile2', type: 'string'}, 
 					{name: 'email', type: 'string'}, 
 					{name: 'pointsBalance', type:'int'},
 					{name: 'orNumber', type: 'string'}, 
 					{name: 'orAmount', type: 'float'}, 
 					{name: 'cashPaid', type:'float'},
-					{name: 'type', type: 'string'} 
+					{name: 'type', type: 'string'},
+					{name: 'cardNumber', type:'string'},
+					{name: 'address', type:'string'},
+					{name: 'comments', type:'string'}
 				],									
 		proxy: {
 			disableCaching: true,
@@ -83,7 +88,6 @@ Ext.onReady(function () {
 		]
     });
 	
-	
 	var addPointsPanel = Ext.create('Ext.form.Panel', {
 		id: 'addPointsPanel',
         frame: true,
@@ -106,9 +110,8 @@ Ext.onReady(function () {
 						id: 'txtAddPointsId',
 						name: 'id',
 			            fieldLabel: 'Member number',
-						width: '50%',
+						width: 200,
 						readOnly: true,
-						width: '50%',
 						margin: '0 20 0 0'
 			        }, 
 					{
@@ -240,7 +243,7 @@ Ext.onReady(function () {
 			var type = addPointsPanel.getForm().getRecord().data.type;
 		
 			var points = parseInt(cash / (type=='P'?15:20));
-			var newPoints = parseFloat(txtAddPointsCurrentPoints.value) + parseFloat(points);
+			var newPoints = parseInt(txtAddPointsCurrentPoints.value) + parseFloat(points);
 			txtAddPointsCalculatedPoints.setValue(points);
 			txtAddPointsNewPointsBalance.setValue(newPoints);
 			
@@ -271,7 +274,6 @@ Ext.onReady(function () {
 			            fieldLabel: 'Member number',
 						width: '50%',
 						readOnly: true,
-						width: '50%',
 						margin: '0 20 0 0'
 			        }, 
 					{
@@ -414,119 +416,179 @@ Ext.onReady(function () {
 		}
     });
 
-
 	var memberEditPanel = Ext.create('Ext.form.Panel', {
-			id: 'memberEditPanel',
-	        frame: true,
-	        title: 'Update member details',
-	        width: 340,
-	        bodyPadding: 20,
-	        fieldDefaults: {
-	            labelAlign: 'left',
-	            labelWidth: 120,
-	            width: '100%'
-	        },
-	        items: [
-				{
-		            xtype: 'textfield',
-					id: 'txtEditMemberId',
-					name: 'id',
-		            fieldLabel: 'Member number',
-					width: '50%',
-					margin: '0 0 20 0',
-					readOnly: true
-		        }, 
-				{
-		            xtype: 'textfield',
-					id: 'txtEditLastname',
-					name: 'lastname',
-		            fieldLabel: 'Last Name'
-		        }, 
-				{
-		            xtype: 'textfield',
-					id: 'txtEditFirstname',
-					name: 'firstname',
-		            fieldLabel: 'First Name'
-		        }, 
-				{
-					xtype: 'combo',
-					fieldLabel: 'Type',
-					editable: false,
-					store: [
-						['E', 'Elite'],
-						['P', 'Platinum Elite']
-					],
-					name: 'type'
-				},
-				{
-		            xtype: 'textfield',
-					id: 'txtEditMobile',
-					name: 'mobile',
-		            fieldLabel: 'Mobile'
-		        }, 
-				{
-		            xtype: 'textfield',
-		            id: 'txtEditEmail',
-					name: 'email',
-		            fieldLabel: 'Email'
-		        },
-				{
-		            xtype: 'textfield',
-		            id: 'txtEditPointsBalance',
-					name: 'pointsBalance',
-		            fieldLabel: 'Points balance'
-		        }
-			],
-	        buttons: [
-				{
-		            text: 'Save',
-		            handler: function() {
-						var formPanel = Ext.getCmp('memberEditPanel');
-						var id = Ext.getCmp('txtEditMemberId').value;
-						formPanel.updateMember();
-						memberPanel.loadMember(id, function(){
-							mainPanel.switch(memberPanel);
-						});
-						
-		            }
-		   	 	},
-				{
-		            text: 'Cancel',
-		            handler: function() {
-						mainPanel.switch(memberPanel);
-		            }
-		   	 	}
-			],
-			loadMember: function(id, callback){
-				Member.load(id, {
-					success: function(record, operation) {	
-						this.loadRecord(record);
-						this.record = record;
-						if(callback)
-							callback();
+		id: 'memberEditPanel',
+        frame: true,
+        title: 'Update member details',
+        width: 340,
+        bodyPadding: 20,
+        fieldDefaults: {
+            labelAlign: 'left',
+            labelWidth: 120,
+            width: '100%'
+        },
+        items: [
+			{
+				xtype: 'fieldcontainer',
+				margin: '0 0 20 0',
+				layout: 'hbox',
+				items: [
+					{
+			            xtype: 'textfield',
+						id: 'txtEditMemberId',
+						name: 'id',
+			            fieldLabel: 'Member number',
+						width: 200,
+						readOnly: true,
+						hidden: true
+			        }, 
+					{
+			            xtype: 'textfield',
+						id: 'txtEditMemberCardNumber',
+						name: 'cardNumber',
+			            fieldLabel: 'Loyalty card no',
+						width: 200,
+						padding: '0 5 0 0',
+			        }, 
+					{
+						xtype: 'combo',
+						id: 'txtEditType',
+						fieldLabel: 'Type',
+						editable: false,
+						store: [
+							['E', 'Elite'],
+							['P', 'Platinum Elite']
+						],
+						name: 'type',
+						labelWidth: 40,
+						width: 180
 					},
-					scope: this
-				});
-			
+					{
+			            xtype: 'textfield',
+			            id: 'txtEditPointsBalance',
+						name: 'pointsBalance',
+			            fieldLabel: 'Points balance',
+						labelWidth: 100,
+						flex: 1,
+						padding: '0 0 0 5'
+			        }
+				]
 			},
-			updateMember: function(){
-				var formPanel = Ext.getCmp('memberEditPanel');
-				var member = formPanel.record;
-				
-				formPanel.updateRecord(member);
-				member.save({
-					success: function(record, operation){
-						Ext.Msg.alert({
-							title: 'Status',
-							msg: 'Changes saved successfully.',
-							icon: Ext.Msg.QUESTION,
-							buttons: Ext.Msg.OK,
-						});
-					}
-				});
+			{
+				xtype: 'fieldcontainer',
+	            fieldLabel: 'Name',
+	            layout: 'hbox',
+	            defaultType: 'textfield',
 
+	            items: [
+					{
+						flex: 1,
+						id: 'txtEditLastname',
+		                name: 'lastname',
+						emptyText: 'last name',
+		            },
+					{
+						flex: 1,
+		                name: 'firstname',
+						id: 'txtEditFirstname',
+						emptyText: 'first name',
+						padding: '0 5 0 5'
+		            },
+					{
+						flex: 1,
+						id: 'txtEditMiddlename',
+		                name: 'middlename',
+						emptyText: 'middle name'
+		            }
+				]
+	        },
+			{
+				xtype: 'fieldcontainer',
+				layout: 'hbox',
+				defaultType: 'textfield',
+				items: [
+					{
+						flex: 1,
+						id: 'txtEditMobile',
+						name: 'mobile',
+						fieldLabel: 'Primary mobile'
+					},
+					{
+						flex: 1,
+						id: 'txtEditMobile2',
+						name: 'mobile2',
+						fieldLabel: 'Secondary mobile',
+						labelWidth: 130,
+						padding: '0 0 0 5'
+					}
+				]
+			},
+			{
+	            xtype: 'textfield',
+	            id: 'txtEditEmail',
+				name: 'email',
+	            fieldLabel: 'Email'
+	        },
+			{
+				xtype: 'textarea',
+				id: 'txtEditAddress',
+				name: 'address',
+				fieldLabel: 'Address'
 			}
-	    });
+		],
+        buttons: [
+			{
+	            text: 'Save',
+	            handler: function() {
+					var formPanel = Ext.getCmp('memberEditPanel');
+					var id = Ext.getCmp('txtEditMemberId').value;
+					formPanel.updateMember();
+					memberPanel.loadMember(id, function(){
+						mainPanel.switch(memberPanel);
+					});
+					
+	            }
+	   	 	},
+			{
+	            text: 'Cancel',
+	            handler: function() {
+					mainPanel.switch(memberPanel);
+	            }
+	   	 	}
+		],
+		loadMember: function(id, callback){
+			Member.load(id, {
+				success: function(record, operation) {	
+					this.loadRecord(record);
+					this.record = record;
+					if(callback)
+						callback();
+				},
+				scope: this
+			});
+		
+		},
+		updateMember: function(){
+			var formPanel = Ext.getCmp('memberEditPanel');
+			var member = formPanel.record;
+
+			formPanel.updateRecord(member);
+			
+			console.log(member);
+			
+			member.save({
+				success: function(record, operation){
+					Ext.Msg.alert({
+						title: 'Status',
+						msg: 'Changes saved successfully.',
+						icon: Ext.Msg.QUESTION,
+						buttons: Ext.Msg.OK,
+					});
+				}
+			});
+
+		}
+	});
 
 	var memberNewPanel = Ext.create('Ext.form.Panel', {
 		id: 'memberNewPanel',
@@ -541,23 +603,91 @@ Ext.onReady(function () {
         },
         items: [
 			{
-	            xtype: 'textfield',
-				id: 'txtNewLastname',
-				name: 'lastname',
-	            fieldLabel: 'Last Name'
-	        }, 
+				xtype: 'fieldcontainer',
+				margin: '0 0 20 0',
+				layout: 'hbox',
+				items: [
+					{
+			            xtype: 'textfield',
+						id: 'txtNewCardNumber',
+						name: 'cardNumber',
+			            fieldLabel: 'Loyalty card no',
+						width: 200,
+						padding: '0 5 0 0',
+			        }, 
+					{
+						xtype: 'combo',
+						id: 'cmbNewType',
+						fieldLabel: 'Type',
+						editable: false,
+						store: [
+							['E', 'Elite'],
+							['P', 'Platinum Elite']
+						],
+						name: 'type',
+						labelWidth: 40,
+						width: 180
+					},
+					{
+			            xtype: 'textfield',
+			            id: 'txtNewPointsBalance',
+						name: 'pointsBalance',
+			            fieldLabel: 'Points balance',
+						labelWidth: 100,
+						flex: 1,
+						padding: '0 0 0 5'
+			        }
+				]
+			},
 			{
-	            xtype: 'textfield',
-				id: 'txtNewFirstname',
-				name: 'firstname',
-	            fieldLabel: 'First Name'
-	        }, 
+				xtype: 'fieldcontainer',
+	            fieldLabel: 'Name',
+	            layout: 'hbox',
+	            defaultType: 'textfield',
+
+	            items: [
+					{
+						flex: 1,
+						id: 'txtNewLastname',
+		                name: 'lastname',
+						emptyText: 'last name',
+		            },
+					{
+						flex: 1,
+		                name: 'firstname',
+						id: 'txtNewFirstname',
+						emptyText: 'first name',
+						padding: '0 5 0 5'
+		            },
+					{
+						flex: 1,
+						id: 'txtNewMiddlename',
+		                name: 'middlename',
+						emptyText: 'middle name'
+		            }
+				]
+	        },
 			{
-	            xtype: 'textfield',
-				id: 'txtNewMobile',
-				name: 'mobile',
-	            fieldLabel: 'Mobile'
-	        }, 
+				xtype: 'fieldcontainer',
+				layout: 'hbox',
+				defaultType: 'textfield',
+				items: [
+					{
+						flex: 1,
+						id: 'txtNewMobile',
+						name: 'mobile',
+						fieldLabel: 'Primary mobile'
+					},
+					{
+						flex: 1,
+						id: 'txtNewMobile2',
+						name: 'mobile2',
+						fieldLabel: 'Secondary mobile',
+						labelWidth: 130,
+						padding: '0 0 0 5'
+					}
+				]
+			},
 			{
 	            xtype: 'textfield',
 	            id: 'txtNewEmail',
@@ -565,11 +695,20 @@ Ext.onReady(function () {
 	            fieldLabel: 'Email'
 	        },
 			{
-	            xtype: 'textfield',
-	            id: 'txtNewPointsBalance',
-				name: 'pointsBalance',
-	            fieldLabel: 'Points balance'
-	        }
+				xtype: 'textarea',
+				id: 'txtNewAddress',
+				name: 'address',
+				fieldLabel: 'Address',
+				emptyText: '# Street, Barangay, City, ZIP code, Province, [Country-optional]',
+				rows: 1,
+				height: 50
+			},
+			{
+				xtype: 'textareafield',
+				id: 'txtNewComments',
+				name: 'comment',
+				fieldLabel: 'Comments'
+			}
 		],
         buttons: [
 			{
@@ -579,9 +718,15 @@ Ext.onReady(function () {
 					var newMember = Ext.create('Member', {
 						lastname: Ext.getCmp('txtNewLastname').value,
 						firstname: Ext.getCmp('txtNewFirstname').value,
+						middlename: Ext.getCmp('txtNewMiddlename').value,
 						mobile: Ext.getCmp('txtNewMobile').value,
+						mobile2: Ext.getCmp('txtNewMobile2').value,
 						email: Ext.getCmp('txtNewEmail').value,
-						pointsBalance: null//(Ext.getCmp('txtNewPointsBalance').value === '' ? null : Ext.getCmp('txtNewPointsBalance').value)
+						pointsBalance: Ext.getCmp('txtNewPointsBalance').value, 
+						cardNumber: Ext.getCmp('txtNewCardNumber').value,
+						address: Ext.getCmp('txtNewAddress').value,
+						type: Ext.getCmp('cmbNewType').value,
+						comments: Ext.getCmp('txtNewComments').value
 					});
 					newMember.save({
 						success: function(record, operation) {
@@ -597,7 +742,7 @@ Ext.onReady(function () {
 			{
 	            text: 'Cancel',
 	            handler: function() {
-					mainPanel.switch(memberPanel);
+					mainPanel.switch(searchPanel);
 	            }
 	   	 	}
 		],
@@ -624,50 +769,109 @@ Ext.onReady(function () {
         fieldDefaults: {
             labelAlign: 'left',
             labelWidth: 120,
-            width: '100%'
+			width: '100%'
         },
         items: [
 			{
-	            xtype: 'textfield',
-				id: 'txtMemberId',
-				name: 'id',
-	            fieldLabel: 'Member number',
-				width: '50%',
+				xtype: 'fieldcontainer',
 				margin: '0 0 20 0',
-				readOnly: true
-	        }, 
-			{
-	            xtype: 'textfield',
-				id: 'txtLastname',
-				name: 'lastname',
-	            fieldLabel: 'Last Name',
-				readOnly: true
-	        }, 
-			{
-	            xtype: 'textfield',
-				id: 'txtFirstname',
-				name: 'firstname',
-	            fieldLabel: 'First Name',
-				readOnly: true
-	        }, 
-			{
-				xtype: 'combo',
-				fieldLabel: 'Type',
-				editable: false,
-				store: [
-					['E', 'Elite'],
-					['P', 'Platinum Elite']
-				],
-				name: 'type',
-				readOnly: true
+				layout: 'hbox',
+				items: [
+					{
+			            xtype: 'textfield',
+						id: 'txtMemberId',
+						name: 'id',
+			            fieldLabel: 'Member number',
+						width: 200,
+						readOnly: true,
+						hidden: true
+			        }, 
+					{
+			            xtype: 'textfield',
+						id: 'txtCardNumber',
+						name: 'cardNumber',
+			            fieldLabel: 'Loyalty card no',
+						width: 200,
+						padding: '0 5 0 0',
+						readOnly: true
+			        }, 
+					{
+						xtype: 'combo',
+						fieldLabel: 'Type',
+						editable: false,
+						store: [
+							['E', 'Elite'],
+							['P', 'Platinum Elite']
+						],
+						name: 'type',
+						readOnly: true,
+						labelWidth: 40,
+						width: 180
+					},
+					{
+			            xtype: 'textfield',
+			            id: 'txtPointsBalance',
+						name: 'pointsBalance',
+			            fieldLabel: 'Points balance',
+						readOnly: true,
+						labelWidth: 100,
+						flex: 1,
+						padding: '0 0 0 5'
+			        }
+				]
 			},
 			{
-	            xtype: 'textfield',
-				id: 'txtMobile',
-				name: 'mobile',
-	            fieldLabel: 'Mobile',
-				readOnly: true
-	        }, 
+				xtype: 'fieldcontainer',
+	            fieldLabel: 'Name',
+	            layout: 'hbox',
+	            defaultType: 'textfield',
+
+	            items: [
+					{
+						flex: 1,
+						id: 'txtLastname',
+		                name: 'lastname',
+						emptyText: 'last name',
+						readOnly: true
+		            },
+					{
+						flex: 1,
+		                name: 'firstname',
+						id: 'txtFirstname',
+						emptyText: 'first name',
+						padding: '0 5 0 5',
+						readOnly: true
+		            },
+					{
+						flex: 1,
+						id: 'txtMiddlename',
+		                name: 'middlename',
+						emptyText: 'middle name',
+						readOnly: true
+		            }
+				]
+	        },
+			{
+				xtype: 'fieldcontainer',
+				layout: 'hbox',
+				defaultType: 'textfield',
+				items: [
+					{
+						flex: 1,
+						id: 'txtMobile',
+						name: 'mobile',
+						fieldLabel: 'Primary mobile'
+					},
+					{
+						flex: 1,
+						id: 'txtMobile2',
+						name: 'mobile2',
+						fieldLabel: 'Secondary mobile',
+						labelWidth: 130,
+						padding: '0 0 0 5'
+					}
+				]
+			},
 			{
 	            xtype: 'textfield',
 	            id: 'txtEmail',
@@ -676,45 +880,51 @@ Ext.onReady(function () {
 				readOnly: true
 	        },
 			{
-	            xtype: 'textfield',
-	            id: 'txtPointsBalance',
-				name: 'pointsBalance',
-	            fieldLabel: 'Points balance',
+				xtype: 'textarea',
+				id: 'txtAddress',
+				name: 'address',
+				fieldLabel: 'Address',
 				readOnly: true
-	        }
+			}
 		],
         buttons: [
 			{
-	            text: 'Add points',
-	            handler: function() {
-					var id = this.up().up().getForm().getValues()['id'];
-					addPointsPanel.reset();	
-					addPointsPanel.loadMember(id, function(){
-						mainPanel.switch(addPointsPanel);
-					});
+	            text: 'Process payments',
+				menu: [
+			        {
+						text: 'Add points',
+			            handler: function() {
+							var id = memberPanel.getForm().getValues()['id'];
+							addPointsPanel.reset();	
+							addPointsPanel.loadMember(id, function(){
+								mainPanel.switch(addPointsPanel);
+							});
+				
+			            }
+					},
+			        {
+						text: 'Redeem points',
+			            handler: function() {
+
+							var id = memberPanel.getForm().getValues()['id'];
+							var balance = memberPanel.getForm().getValues()['pointsBalance'];
 					
-	            }
-	   	 	},
-			{
-	            text: 'Redeem points',
-	            handler: function() {
-					var id = this.up().up().getForm().getValues()['id'];
-					var balance = this.up().up().getForm().getValues()['balance'];
+							if(!(parseFloat(balance) >= 500)){
+								Ext.Msg.show({
+									title:'Sorry!', 
+									msg:'To redeem points, balance must be greater than 500 points.',
+									buttons: Ext.Msg.OK,
+								});
+								return;
+							}
 					
-					if(!(parseFloat(balance) >= 500)){
-						Ext.Msg.show({
-							title:'Sorry!', 
-							msg:'To redeem points, balance must be greater than 500 points.',
-							buttons: Ext.Msg.OK,
-						});
-						return;
+							redeemPointsPanel.reset();	
+							redeemPointsPanel.loadMember(id, function(){
+								mainPanel.switch(redeemPointsPanel);
+							});
+			            }
 					}
-					
-					redeemPointsPanel.reset();	
-					redeemPointsPanel.loadMember(id, function(){
-						mainPanel.switch(redeemPointsPanel);
-					});
-	            }
+				]
 	   	 	},
 			{
 	            text: 'Transfer points',
@@ -756,6 +966,7 @@ Ext.onReady(function () {
 			
 		}
     });
+	
 	var searchResultGrid = {
 		id: 'searchResultGrid',
 		xtype: 'grid',
@@ -774,8 +985,8 @@ Ext.onReady(function () {
 	            dataIndex: 'firstname'
 	        },
 			{
-	            text: 'ID',
-	            dataIndex: 'id',
+	            text: 'Loyaly card no',
+	            dataIndex: 'cardNumber',
 	            flex: 20
         	}
 		],
@@ -783,6 +994,7 @@ Ext.onReady(function () {
 		     fields: ['id', 'lastname', 'firstname']
 		})
     };
+	
 	var searchResultPanel = Ext.create('Ext.form.Panel', {
         frame: true,
         title: 'Multiple match found',
@@ -817,6 +1029,7 @@ Ext.onReady(function () {
 	   	 	}
 		]
     });
+	
 	var searchPanel = Ext.create('Ext.form.Panel', {
         frame: true,
         title: 'Search members',
@@ -833,27 +1046,68 @@ Ext.onReady(function () {
 				id: 'txtSearchMemberId',
 				name: 'id',
 	            fieldLabel: 'Member number',
-				width: '50%',
+				width: 200,
+				margin: '0 0 20 0',
+				hidden: true
+	        }, 
+			{
+	            xtype: 'textfield',
+				id: 'txtSearchMemberCardNumber',
+				name: 'cardNumber',
+	            fieldLabel: 'Loyalty card no',
+				width: 200,
 				margin: '0 0 20 0'
-	        }, 
+	        }, 	
+			
 			{
-	            xtype: 'textfield',
-				id: 'txtSearchLastname',
-				name: 'lastname',
-	            fieldLabel: 'Last Name'
-	        }, 
+				xtype: 'fieldcontainer',
+	            fieldLabel: 'Name',
+	            layout: 'hbox',
+	            defaultType: 'textfield',
+
+	            items: [
+					{
+						flex: 1,
+						id: 'txtSearchLastname',
+		                name: 'lastname',
+						emptyText: 'last name',
+		            },
+					{
+						flex: 1,
+		                name: 'firstname',
+						id: 'txtSearchFirstname',
+						emptyText: 'first name',
+						padding: '0 5 0 5'
+		            },
+					{
+						flex: 1,
+						id: 'txtSearchMiddlename',
+		                name: 'middlename',
+						emptyText: 'middle name'
+		            }
+				]
+	        },
 			{
-	            xtype: 'textfield',
-				id: 'txtSearchFirstname',
-				name: 'firstname',
-	            fieldLabel: 'First Name'
-	        }, 
-			{
-	            xtype: 'textfield',
-				id: 'txtSearchMobile',
-				name: 'mobile',
-	            fieldLabel: 'Mobile'
-	        }, 
+				xtype: 'fieldcontainer',
+				layout: 'hbox',
+				defaultType: 'textfield',
+				items: [
+					{
+						flex: 1,
+						id: 'txtSearchMobile',
+						name: 'mobile',
+						fieldLabel: 'Primary mobile'
+					},
+					{
+						flex: 1,
+						id: 'txtSearchMobile2',
+						name: 'mobile2',
+						fieldLabel: 'Secondary mobile',
+						labelWidth: 130,
+						padding: '0 0 0 5'
+					}
+				]
+			},
 			{
 	            xtype: 'textfield',
 	            id: 'txtSearchEmail',
@@ -875,7 +1129,7 @@ Ext.onReady(function () {
 	            handler: function() {
 					
 					var params = {};
-					var items = ['txtSearchMemberId', 'txtSearchLastname', 'txtSearchFirstname', 'txtSearchMobile','txtSearchEmail'];
+					var items = ['txtSearchMemberCardNumber', 'txtSearchLastname', 'txtSearchFirstname', 'txtSearchMiddlename','txtSearchMobile','txtSearchMobile2','txtSearchEmail'];
 					for(var item in items ){
 						var field = Ext.getCmp(items[item]);
 						if(field.value)
@@ -928,9 +1182,9 @@ Ext.onReady(function () {
 		id: 'mainPanel',
 		xtype: 'panel',
 		title: 'Autohub Group Loyalty Program',
-		width: 900,
+		width: 750,
 		height: 550,
-		bodyStyle: 'padding: 50px',
+		bodyStyle: 'padding-left: 50px; padding-right: 50px; padding-top: 35px; padding-bottom: 35px;',
 	    layout: 'card',
 		activeItem: 0,
 		items: [loginPanel, searchPanel, searchResultPanel, memberPanel, memberEditPanel, addPointsPanel],
