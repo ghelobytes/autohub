@@ -88,172 +88,11 @@ Ext.onReady(function () {
 		]
     });
 	
-	var addPointsPanel = Ext.create('Ext.form.Panel', {
-		id: 'addPointsPanel',
-        frame: true,
-        title: 'Add points',
-        width: 340,
-        bodyPadding: 20,
-        fieldDefaults: {
-            labelAlign: 'left',
-            labelWidth: 120,
-            width: '100%'
-        },
-        items: [
-			{
-				xtype: 'fieldcontainer',
-				layout: 'hbox',
-				margin: '0 0 20 0',
-				items: [
-					{
-			            xtype: 'textfield',
-						id: 'txtAddPointsId',
-						name: 'id',
-			            fieldLabel: 'Member number',
-						width: 200,
-						readOnly: true,
-						margin: '0 20 0 0'
-			        }, 
-					{
-						xtype: 'textfield',
-						id: 'txtAddPointsCurrentPoints',
-						name: 'pointsBalance',
-						fieldLabel: 'Current points',
-						readOnly: true,
-						width: '50%'
-					}
-				]
-			},
-			
-			{
-	            xtype: 'textfield',
-				id: 'txtAddPointsORNumber',
-				//name: 'orNumber',
-	            fieldLabel: 'Enter OR number'
-	        }, 
-			{
-	            xtype: 'numberfield',
-				id: 'txtAddPointsORAmount',
-				//name: 'orAmount',
-	            fieldLabel: 'Enter OR amount',
-				hideTrigger: true,
-				keyNavEnabled: false,
-				mouseWheelEnabled: false
-				
-	        }, 
-			{
-	            xtype: 'numberfield',
-				id: 'txtAddPointsCashPaid',
-				//name: 'cashPaid',
-	            fieldLabel: 'Enter cash paid',
-				hideTrigger: true,
-				keyNavEnabled: false,
-				mouseWheelEnabled: false,
-				listeners: {
-					change: function(){
-						addPointsPanel.calculatePoints();
-					}
-				}
-	        },
-			{
-	            xtype: 'numberfield',
-				id: 'txtAddPointsCalculatedPoints',
-	            fieldLabel: 'Calculated points',
-				readOnly: true
-	        },
-			{
-	            xtype: 'numberfield',
-				id: 'txtAddPointsNewPointsBalance',
-	            fieldLabel: 'New points balance',
-				readOnly: true
-	        },
-			
-		],
-        buttons: [
-			{
-	            text: 'Confirm',
-	            handler: function() {
-					var formPanel = Ext.getCmp('addPointsPanel');
-					var id = Ext.getCmp('txtAddPointsId').value;
-					formPanel.updateMember();
-					memberPanel.loadMember(id, function(){
-						mainPanel.switch(memberPanel);
-					});
-					
-	            }
-	   	 	},
-			{
-	            text: 'Cancel',
-	            handler: function() {
-					mainPanel.switch(memberPanel);
-	            }
-	   	 	}
-		],
-		updateMember: function(){
-			var txtAddPointsCashPaid = Ext.getCmp('txtAddPointsCashPaid');
-			var txtAddPointsNewPointsBalance = Ext.getCmp('txtAddPointsNewPointsBalance');
-			var txtAddPointsORNumber = Ext.getCmp('txtAddPointsORNumber');
-			var txtAddPointsORAmount = Ext.getCmp('txtAddPointsORAmount');
-			
-			var txtAddPointsId = Ext.getCmp('txtAddPointsId');
-			
-			var member = Ext.create('Member', {
-				id: txtAddPointsId.value
-			});
-			member.set('cashPaid', txtAddPointsCashPaid.value);
-			member.set('pointsBalance', txtAddPointsNewPointsBalance.value);
-			member.set('orNumber', txtAddPointsORNumber.value);
-			member.set('orAmount', txtAddPointsORAmount.value);
-			
-			member.save({
-				success: function(record, operation) {
-					
-					Ext.Msg.alert({
-						title: 'Status',
-						msg: 'Changes saved successfully.',
-						icon: Ext.Msg.QUESTION,
-						buttons: Ext.Msg.OK,
-					});
-					
-				}
-			});
-		},
-		loadMember: function(id, callback){
-			Member.load(id, {
-				success: function(record, operation) {	
-					this.loadRecord(record);
-					this.record = record;
-					if(callback)
-						callback();
-				},
-				scope: this
-			});
-		},
-		calculatePoints: function(){
-			var txtAddPointsCashPaid = Ext.getCmp('txtAddPointsCashPaid');
-			var txtAddPointsCalculatedPoints = Ext.getCmp('txtAddPointsCalculatedPoints');
-			
-			var txtAddPointsCurrentPoints = Ext.getCmp('txtAddPointsCurrentPoints');
-			var txtAddPointsNewPointsBalance = Ext.getCmp('txtAddPointsNewPointsBalance');
-			
-			var cash = txtAddPointsCashPaid.value;
-			
-			// if E then points = cash/20
-			// if P then points = cash/15
-			var type = addPointsPanel.getForm().getRecord().data.type;
-		
-			var points = parseInt(cash / (type=='P'?15:20));
-			var newPoints = parseInt(txtAddPointsCurrentPoints.value) + parseFloat(points);
-			txtAddPointsCalculatedPoints.setValue(points);
-			txtAddPointsNewPointsBalance.setValue(newPoints);
-			
-		}
-    });
 	
 	var redeemPointsPanel = Ext.create('Ext.form.Panel', {
 		id: 'redeemPointsPanel',
         frame: true,
-        title: 'RedeemPoints',
+        title: 'Process payments',
         width: 340,
         bodyPadding: 20,
         fieldDefaults: {
@@ -264,73 +103,149 @@ Ext.onReady(function () {
         items: [
 			{
 				xtype: 'fieldcontainer',
-				layout: 'hbox',
 				margin: '0 0 20 0',
+				layout: 'hbox',
 				items: [
 					{
 			            xtype: 'textfield',
-						id: 'txtRedeemPointsId',
+						id: 'txtRedeemPointsMemberId',
 						name: 'id',
 			            fieldLabel: 'Member number',
-						width: '50%',
+						width: 200,
 						readOnly: true,
-						margin: '0 20 0 0'
+						hidden: true
 			        }, 
 					{
-						xtype: 'textfield',
-						id: 'txtRedeemPointsCurrentPoints',
-						name: 'pointsBalance',
-						fieldLabel: 'Current points',
+			            xtype: 'textfield',
+						id: 'txtRedeemPointsCardNumber',
+						name: 'cardNumber',
+			            fieldLabel: 'Loyalty card no',
+						width: 200,
+						padding: '0 5 0 0',
+						readOnly: true
+			        }, 
+					{
+						xtype: 'combo',
+						fieldLabel: 'Type',
+						editable: false,
+						store: [
+							['E', 'Elite'],
+							['P', 'Platinum Elite']
+						],
+						name: 'type',
 						readOnly: true,
-						width: '50%'
-					}
+						labelWidth: 40,
+						width: 180
+					},
+					{
+			            xtype: 'textfield',
+			            id: 'txtRedeemPointsPointsBalance',
+						name: 'pointsBalance',
+			            fieldLabel: 'Points balance',
+						readOnly: true,
+						labelWidth: 100,
+						flex: 1,
+						padding: '0 0 0 5'
+			        }
 				]
 			},
-			
 			{
-	            xtype: 'textfield',
-				id: 'txtRedeemPointsORNumber',
-	            fieldLabel: 'Enter OR number'
-	        }, 
+				xtype: 'fieldcontainer',
+				margin: '0 0 20 0',
+	            fieldLabel: 'Name',
+	            layout: 'hbox',
+	            defaultType: 'textfield',
+	            items: [
+					{
+						flex: 1,
+						id: 'txtRedeemPointsLastname',
+		                name: 'lastname',
+						emptyText: 'last name',
+						readOnly: true
+		            },
+					{
+						flex: 1,
+		                name: 'firstname',
+						id: 'txtRedeemPointsFirstname',
+						emptyText: 'first name',
+						padding: '0 5 0 5',
+						readOnly: true
+		            },
+					{
+						flex: 1,
+						id: 'txtRedeemPointsMiddlename',
+		                name: 'middlename',
+						emptyText: 'middle name',
+						readOnly: true
+		            }
+				]
+	        },
 			{
-	            xtype: 'numberfield',
-				id: 'txtRedeemPointsORAmount',
-				//name: 'orAmount',
-	            fieldLabel: 'Enter OR amount',
-				hideTrigger: true,
-				keyNavEnabled: false,
-				mouseWheelEnabled: false,
-				listeners: {
-					change: function(){
-						redeemPointsPanel.calculatePoints();
-					}
-				}
+				xtype: 'fieldcontainer',
+				layout: 'hbox',
+				items: [
 				
-	        }, 
+					{
+			            xtype: 'textfield',
+						id: 'txtRedeemPointsORNumber',
+			            fieldLabel: 'OR number',
+						flex: 1
+			        }, 
+					{
+			            xtype: 'numberfield',
+						id: 'txtRedeemPointsORAmount',
+			            fieldLabel: 'OR amount',
+						labelWidth: 100,
+						hideTrigger: true,
+						keyNavEnabled: false,
+						mouseWheelEnabled: false,
+						listeners: {
+							change: function(){
+								redeemPointsPanel.calculatePoints();
+							}
+						},
+						flex: 1,
+						padding: '0 0 0 5'
+				
+			        }
+				
+				]
+			},
 			{
-	            xtype: 'numberfield',
-				id: 'txtRedeemPointsCashPaid',
-				//name: 'cashPaid',
-	            fieldLabel: 'Enter cash paid',
-				hideTrigger: true,
-				keyNavEnabled: false,
-				mouseWheelEnabled: false,
-				listeners: {
-					change: function(){
-						redeemPointsPanel.calculatePoints();
-					}
-				}
-	        },
-			{
-	            xtype: 'numberfield',
-				id: 'txtRedeemPointsPointsRequired',
-	            fieldLabel: 'Points required',
-				readOnly: true
-	        },
+				xtype: 'fieldcontainer',
+				layout: 'hbox',
+				items: [
+					{
+			            xtype: 'numberfield',
+						id: 'txtRedeemPointsCashPaid',
+			            fieldLabel: 'Enter cash paid',
+						hideTrigger: true,
+						keyNavEnabled: false,
+						mouseWheelEnabled: false,
+						listeners: {
+							change: function(){
+								redeemPointsPanel.calculatePoints();
+							}
+						},
+						flex: 1
+			        },
+					{
+			            xtype: 'numberfield',
+						id: 'txtRedeemPointsPointsPaid',
+			            fieldLabel: 'Points paid',
+						labelWidth: 100,
+						readOnly: true,
+						flex: 1,
+						padding: '0 0 0 5'
+			        }
+				]
+			},
 			{
 	            xtype: 'numberfield',
 				id: 'txtRedeemPointsNewPointsBalance',
 	            fieldLabel: 'New points balance',
+				labelWidth: 150,
+				width: 300,
 				readOnly: true
 	        },
 			
@@ -339,8 +254,24 @@ Ext.onReady(function () {
 			{
 	            text: 'Confirm',
 	            handler: function() {
+					var txtRedeemPointsCashPaid = Ext.getCmp('txtRedeemPointsCashPaid');
+					var cash = parseFloat(txtRedeemPointsCashPaid.value + 0);
+		
+					var txtRedeemPointsNewPointsBalance = Ext.getCmp('txtRedeemPointsNewPointsBalance');
+					var newPoints = parseInt(txtRedeemPointsNewPointsBalance.value + 0);
+					
+					if(newPoints < 500 & cash == 0)
+					{
+						Ext.Msg.show({
+							title:'Sorry!', 
+							msg:'To redeem points, balance must be greater than 500 points.',
+							buttons: Ext.Msg.OK,
+						});
+						return;
+					}
+					
 					var formPanel = Ext.getCmp('redeemPointsPanel');
-					var id = Ext.getCmp('txtRedeemPointsId').value;
+					var id = Ext.getCmp('txtRedeemPointsMemberId').value;
 					formPanel.updateMember();
 					memberPanel.loadMember(id, function(){
 						mainPanel.switch(memberPanel);
@@ -361,10 +292,10 @@ Ext.onReady(function () {
 			var txtRedeemPointsORNumber = Ext.getCmp('txtRedeemPointsORNumber');
 			var txtRedeemPointsORAmount = Ext.getCmp('txtRedeemPointsORAmount');
 			
-			var txtRedeemPointsId = Ext.getCmp('txtRedeemPointsId');
+			var txtRedeemPointsMemberId = Ext.getCmp('txtRedeemPointsMemberId');
 			
 			var member = Ext.create('Member', {
-				id: txtRedeemPointsId.value
+				id: txtRedeemPointsMemberId.value
 			});
 			member.set('cashPaid', txtRedeemPointsCashPaid.value);
 			member.set('pointsBalance', txtRedeemPointsNewPointsBalance.value);
@@ -398,24 +329,33 @@ Ext.onReady(function () {
 		calculatePoints: function(){
 			var txtRedeemPointsORAmount = Ext.getCmp('txtRedeemPointsORAmount');
 			var txtRedeemPointsCashPaid = Ext.getCmp('txtRedeemPointsCashPaid');
-			var txtRedeemPointsPointsRequired = Ext.getCmp('txtRedeemPointsPointsRequired');
+			var txtRedeemPointsPointsPaid = Ext.getCmp('txtRedeemPointsPointsPaid');
 			
-			var txtRedeemPointsCurrentPoints = Ext.getCmp('txtRedeemPointsCurrentPoints');
+			var txtRedeemPointsPointsBalance = Ext.getCmp('txtRedeemPointsPointsBalance');
 			var txtRedeemPointsNewPointsBalance = Ext.getCmp('txtRedeemPointsNewPointsBalance');
 			
 			var orAmount = parseFloat(txtRedeemPointsORAmount.value);
-			var cash = parseFloat(txtRedeemPointsCashPaid.value);
+			var cash = parseFloat(txtRedeemPointsCashPaid.value + 0);
 			//var pointsRequired = parseInt((orAmount - cash)*100);
-			var pointsRequired = parseInt(orAmount - cash);
-			var currentPoints = parseInt(txtRedeemPointsCurrentPoints.value);
-			var newPoints = parseInt(currentPoints - pointsRequired);
+			var pointsPaid = parseInt(orAmount - cash);
+			var pointsBalance = parseInt(txtRedeemPointsPointsBalance.value);
 			
-			txtRedeemPointsPointsRequired.setValue(pointsRequired);
+			
+			// if E then points = cash/20
+			// if P then points = cash/15
+			var type = redeemPointsPanel.getForm().getRecord().data.type;
+			
+			var redeemPoints = parseInt(pointsBalance - pointsPaid);
+			var addPoints = parseInt(pointsBalance + (cash / (type=='P'?15:20)));
+			
+			var newPoints = (pointsPaid > 0 ? redeemPoints : addPoints);
+			
+			txtRedeemPointsPointsPaid.setValue(pointsPaid);
 			txtRedeemPointsNewPointsBalance.setValue(newPoints);
 			
 		}
     });
-
+	
 	var memberEditPanel = Ext.create('Ext.form.Panel', {
 		id: 'memberEditPanel',
         frame: true,
@@ -890,42 +830,29 @@ Ext.onReady(function () {
         buttons: [
 			{
 	            text: 'Process payments',
-				menu: [
-			        {
-						text: 'Add points',
-			            handler: function() {
-							var id = memberPanel.getForm().getValues()['id'];
-							addPointsPanel.reset();	
-							addPointsPanel.loadMember(id, function(){
-								mainPanel.switch(addPointsPanel);
-							});
-				
-			            }
-					},
-			        {
-						text: 'Redeem points',
-			            handler: function() {
+				handler: function() {
 
-							var id = memberPanel.getForm().getValues()['id'];
-							var balance = memberPanel.getForm().getValues()['pointsBalance'];
+					var id = memberPanel.getForm().getValues()['id'];
 					
-							if(!(parseFloat(balance) >= 500)){
-								Ext.Msg.show({
-									title:'Sorry!', 
-									msg:'To redeem points, balance must be greater than 500 points.',
-									buttons: Ext.Msg.OK,
-								});
-								return;
-							}
-					
-							redeemPointsPanel.reset();	
-							redeemPointsPanel.loadMember(id, function(){
-								mainPanel.switch(redeemPointsPanel);
-							});
-			            }
+					/*
+					var balance = memberPanel.getForm().getValues()['pointsBalance'];
+			
+					if(!(parseFloat(balance) >= 500)){
+						Ext.Msg.show({
+							title:'Sorry!', 
+							msg:'To redeem points, balance must be greater than 500 points.',
+							buttons: Ext.Msg.OK,
+						});
+						return;
 					}
-				]
-	   	 	},
+					*/
+			
+					redeemPointsPanel.reset();	
+					redeemPointsPanel.loadMember(id, function(){
+						mainPanel.switch(redeemPointsPanel);
+					});
+	            }
+			},
 			{
 	            text: 'Transfer points',
 	            handler: function() {
@@ -1056,7 +983,14 @@ Ext.onReady(function () {
 				name: 'cardNumber',
 	            fieldLabel: 'Loyalty card no',
 				width: 200,
-				margin: '0 0 20 0'
+				margin: '0 0 20 0',
+				enableKeyEvents: true,
+				_listeners: {
+					keypress: function(comp, e){
+						//if(e.charCode == 13)
+						
+					}
+				}
 	        }, 	
 			
 			{
@@ -1126,6 +1060,7 @@ Ext.onReady(function () {
 			{ xtype: 'component', flex: 1 },
 			{
 	            text: 'Search',
+				id: 'btnSearch',
 	            handler: function() {
 					
 					var params = {};
@@ -1187,7 +1122,7 @@ Ext.onReady(function () {
 		bodyStyle: 'padding-left: 50px; padding-right: 50px; padding-top: 35px; padding-bottom: 35px;',
 	    layout: 'card',
 		activeItem: 0,
-		items: [loginPanel, searchPanel, searchResultPanel, memberPanel, memberEditPanel, addPointsPanel],
+		items: [loginPanel, searchPanel, searchResultPanel, memberPanel, memberEditPanel],
 		switch: function(panel){
 			
 			Ext.getCmp('mainPanel').getLayout().setActiveItem(panel);
