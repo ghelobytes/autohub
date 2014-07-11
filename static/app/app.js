@@ -272,10 +272,12 @@ Ext.onReady(function () {
 					
 					var formPanel = Ext.getCmp('redeemPointsPanel');
 					var id = Ext.getCmp('txtRedeemPointsMemberId').value;
-					formPanel.updateMember();
-					memberPanel.loadMember(id, function(){
-						mainPanel.switch(memberPanel);
+					formPanel.updateMember(function(){
+						memberPanel.loadMember(id, function(){
+							mainPanel.switch(memberPanel);
+						});
 					});
+
 					
 	            }
 	   	 	},
@@ -286,7 +288,7 @@ Ext.onReady(function () {
 	            }
 	   	 	}
 		],
-		updateMember: function(){
+		updateMember: function(callback){
 			var txtRedeemPointsCashPaid = Ext.getCmp('txtRedeemPointsCashPaid');
 			var txtRedeemPointsNewPointsBalance = Ext.getCmp('txtRedeemPointsNewPointsBalance');
 			var txtRedeemPointsORNumber = Ext.getCmp('txtRedeemPointsORNumber');
@@ -304,6 +306,9 @@ Ext.onReady(function () {
 			
 			member.save({
 				success: function(record, operation) {
+					
+					if(callback)
+						callback();
 					
 					Ext.Msg.alert({
 						title: 'Status',
@@ -482,10 +487,12 @@ Ext.onReady(function () {
 	            handler: function() {
 					var formPanel = Ext.getCmp('memberEditPanel');
 					var id = Ext.getCmp('txtEditMemberId').value;
-					formPanel.updateMember();
-					memberPanel.loadMember(id, function(){
-						mainPanel.switch(memberPanel);
+					formPanel.updateMember(function(){
+						memberPanel.loadMember(id, function(){
+							mainPanel.switch(memberPanel);
+						});
 					});
+					
 					
 	            }
 	   	 	},
@@ -508,7 +515,7 @@ Ext.onReady(function () {
 			});
 		
 		},
-		updateMember: function(){
+		updateMember: function(callback){
 			var formPanel = Ext.getCmp('memberEditPanel');
 			var member = formPanel.record;
 
@@ -518,6 +525,10 @@ Ext.onReady(function () {
 			
 			member.save({
 				success: function(record, operation){
+					
+					if(callback)
+						callback();
+					
 					Ext.Msg.alert({
 						title: 'Status',
 						msg: 'Changes saved successfully.',
