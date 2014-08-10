@@ -255,7 +255,7 @@ router.put('/members/:id', function(req, res){
 				function(err, rows){
 			
 					// record the points history
-					updatePointsHistory(member);
+					updatePointsHistory(member, req.session.user.username);
 			
 					// record what has done in the session
 					var log = {
@@ -360,11 +360,11 @@ function logTransaction(type, user, data){
 	);
 }
 
-function updatePointsHistory(data){	
+function updatePointsHistory(data, username){	
 	
 	console.log("xxxxxx", data);
 	
-	pool.query('insert into pointsHistory(orNumber, orAmount, cashPaid, newPointsBalance, cardNumber, transactionDate, transactionType) values(?,?,?,?,?,STR_TO_DATE(?,"%c-%e-%Y"),?);', 
+	pool.query('insert into pointsHistory(orNumber, orAmount, cashPaid, newPointsBalance, cardNumber, transactionDate, transactionType, user) values(?,?,?,?,?,STR_TO_DATE(?,"%c-%e-%Y"),?,?);', 
 		[
 			data.orNumber,
 			data.orAmount,
@@ -372,7 +372,8 @@ function updatePointsHistory(data){
 			data.pointsBalance,
 			data.cardNumber,
 			data.transactionDate,
-			data.transactionType
+			data.transactionType,
+			username
 		], 
 		function(err, rows){
 			console.log((err?err:rows));		

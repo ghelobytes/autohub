@@ -52,7 +52,7 @@ Ext.onReady(function () {
 				id: 'txtLoginUsername',
 				name: 'id',
 	            fieldLabel: 'Username',
-				value: 'jonathan'
+				_value: 'jonathan'
 	        }, 
 			{
 	            xtype: 'textfield',
@@ -60,7 +60,7 @@ Ext.onReady(function () {
 				name: 'orNo',
 	            fieldLabel: 'Password',
 				inputType: 'password',
-				value: 'jonathan'
+				_value: 'jonathan'
 	        }
 		],
         buttons: [
