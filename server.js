@@ -306,6 +306,16 @@ router.get('/util/rates',function(req, res){
 
 
 
+// REPORT DATA
+router.get('/reports', function(req, res){
+	pool.query('select location, dealershipCode, count(*) as transactionCount, sum(newPointsBalance) as totalPoints from pointsHistory left join ' + 
+			   'users on pointsHistory.user = users.username group by location, dealershipCode', 
+		[], 
+		function(err, rows){	
+			res.json(err?err:rows);
+		}
+	);
+});
 
 
 
@@ -335,7 +345,7 @@ function getRate(dealershipCode, transactionDate, req, res){
 	pool.query('select * from exchangeRate where dealershipCode = ? and ? between fromDate and toDate order by dealershipCode, fromDate desc', 
 		[ dealershipCode, transactionDate ], 
 		function(err, rows){
-			if(!err) {
+			if(!err && rows.length > 0) {
 				rate.elite = rows[0].eliteRate;
 				rate.platinumElite = rows[0].platinumEliteRate;
 			}	

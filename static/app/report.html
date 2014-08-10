@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <title>AutoHub - Demo</title>		
+	<link rel="stylesheet" type="text/css" href="ext/packages/ext-theme-crisp-touch/build/resources/ext-theme-crisp-touch-all-debug.css">
+	<script type="text/javascript" src="ext/ext-all-debug.js"></script>
+	
+    <script>
+	
+	Ext.onReady(function(){
+		
+		Ext.define('Report', {
+		    extend: 'Ext.data.Model',
+		    fields: [
+				'location',
+				'dealershipCode',
+				{
+					name: 'transactionCount',
+					type: 'int'
+				},
+				{
+					name: 'totalPoints',
+					type: 'float'
+				}
+			]
+		});
+		
+		
+		var store = Ext.create('Ext.data.Store',{
+			model: 'Report',
+			groupField: 'location',
+		    proxy: {
+	            type: 'ajax',
+	            url: '/reports',
+	            reader: {
+	                type: 'json'
+	            }
+	        },
+			autoLoad: true
+		
+		});
+		
+
+		var grid = Ext.create('Ext.grid.Panel', {
+			title: 'Accumulated Points',
+			width: 600,
+		    features: [
+				{
+		        	groupHeaderTpl: 'Location: {name}',
+		        	ftype: 'groupingsummary'
+		    	}
+			],
+		    store: store,
+			sortableColumns: false,
+			enableColumnHide: false,
+		    columns: [
+				{
+			        dataIndex: 'dealershipCode',
+			        text: 'Dealership',
+			        summaryType: 'count',
+			        summaryRenderer: function(value){
+			            return Ext.String.format('&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Summary for {0} dealership{1}', value, value !== 1 ? 's' : '');
+			        },
+					flex: 2
+			    }, 
+				{
+			        dataIndex: 'transactionCount',
+			        text: 'Transactions',
+			        summaryType: 'sum',
+					flex: 1,
+					align: 'right'
+			    },
+				{
+			        dataIndex: 'totalPoints',
+			        text: 'Points',
+			        summaryType: 'sum',
+					flex: 1,
+					align: 'right'
+			    }
+			]
+		});
+		
+		
+		Ext.create('Ext.container.Viewport', {
+			layout: {
+			    type:'vbox',
+			    align:'center',
+			    _pack:'middle'
+			},
+			items: grid
+		});
+		
+		
+	});
+	
+	
+	</script>
+	
+</head>
+<body>
+</body>
+</html>
