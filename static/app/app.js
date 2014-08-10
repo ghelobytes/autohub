@@ -4,6 +4,7 @@ Ext.onReady(function () {
 	
 	
 	var currentMember;
+	var user;
 	
 	// define a model for member
 	Ext.define('Member', {
@@ -23,7 +24,9 @@ Ext.onReady(function () {
 					{name: 'type', type: 'string'},
 					{name: 'cardNumber', type:'string'},
 					{name: 'address', type:'string'},
-					{name: 'comments', type:'string'}
+					{name: 'comments', type:'string'},
+					{name: 'transactionDate', type: 'date', dateFormat: 'm-d-Y'},
+					{name: 'transactionType', type: 'string'}
 				],									
 		proxy: {
 			disableCaching: true,
@@ -48,14 +51,16 @@ Ext.onReady(function () {
 	            xtype: 'textfield',
 				id: 'txtLoginUsername',
 				name: 'id',
-	            fieldLabel: 'Username'
+	            fieldLabel: 'Username',
+				value: 'jonathan'
 	        }, 
 			{
 	            xtype: 'textfield',
 				id: 'txtLoginPassword',
 				name: 'orNo',
 	            fieldLabel: 'Password',
-				inputType: 'password'
+				inputType: 'password',
+				value: 'jonathan'
 	        }
 		],
         buttons: [
@@ -71,7 +76,9 @@ Ext.onReady(function () {
 						},
 						success: function(response, opts) {
 							var result = Ext.decode(response.responseText);
+							
 							if(result.length == 1){
+								user = result[0];
 								mainPanel.switch(searchPanel);
 							} else {
 								Ext.MessageBox.show({
@@ -85,7 +92,7 @@ Ext.onReady(function () {
 					});
 	            }
 	   	 	}
-		]
+		],
     });
 	
 	
@@ -100,10 +107,56 @@ Ext.onReady(function () {
             labelWidth: 120,
             width: '100%'
         },
+		listeners: {
+			activate: function(){
+				
+				var txtRedeemPointsTransactionDate = Ext.getCmp('txtRedeemPointsTransactionDate');
+				if(user.role === 'CASHIER') {
+					txtRedeemPointsTransactionDate.setReadOnly(true);
+					txtRedeemPointsTransactionDate.triggers['edit'].show();	
+				} else {
+					// SYSAD, SUPERVISOR
+					txtRedeemPointsTransactionDate.setReadOnly(false);
+					txtRedeemPointsTransactionDate.triggers['edit'].hide();
+				}
+				
+				
+				// get exchange rates
+				this.getRate(user.dealershipCode, new Date(), function(rate){
+					redeemPointsPanel.rate = rate;
+				});
+				
+			}
+		},
+		getRate: function(dealershipCode, transactionDate, callback){
+			Ext.Ajax.request({
+				method: 'GET',
+				url: '/util/rates',
+				params: {
+					dc: dealershipCode,
+					td: transactionDate
+				},
+				success: function(response, opts) {
+					var result = Ext.decode(response.responseText);
+					console.log(result);
+				
+					if(callback)
+						callback(result);
+				}
+			});
+		},
         items: [
 			{
+	            xtype: 'textfield',
+				id: 'txtRedeemPointsCardNumber',
+				name: 'cardNumber',
+	            fieldLabel: 'Loyalty card no',
+				width: 300,
+				emptyText: '0000-0000-0000-0000',
+				readOnly: true
+	        }, 
+			{
 				xtype: 'fieldcontainer',
-				margin: '0 0 20 0',
 				layout: 'hbox',
 				items: [
 					{
@@ -116,15 +169,6 @@ Ext.onReady(function () {
 						hidden: true
 			        }, 
 					{
-			            xtype: 'textfield',
-						id: 'txtRedeemPointsCardNumber',
-						name: 'cardNumber',
-			            fieldLabel: 'Loyalty card no',
-						width: 200,
-						padding: '0 5 0 0',
-						readOnly: true
-			        }, 
-					{
 						xtype: 'combo',
 						fieldLabel: 'Type',
 						editable: false,
@@ -134,8 +178,7 @@ Ext.onReady(function () {
 						],
 						name: 'type',
 						readOnly: true,
-						labelWidth: 40,
-						width: 180
+						flex: 1
 					},
 					{
 			            xtype: 'textfield',
@@ -151,7 +194,6 @@ Ext.onReady(function () {
 			},
 			{
 				xtype: 'fieldcontainer',
-				margin: '0 0 20 0',
 	            fieldLabel: 'Name',
 	            layout: 'hbox',
 	            defaultType: 'textfield',
@@ -243,12 +285,102 @@ Ext.onReady(function () {
 			{
 	            xtype: 'numberfield',
 				id: 'txtRedeemPointsNewPointsBalance',
-	            fieldLabel: 'New points balance',
-				labelWidth: 150,
+	            fieldLabel: 'New points bal.',
 				width: 300,
 				readOnly: true
 	        },
-			
+
+			{
+				xtype: 'fieldcontainer',
+				layout: 'hbox',
+				items: [
+				
+					{
+		            xtype: 'datefield',
+					id: 'txtRedeemPointsTransactionDate',
+		            fieldLabel: 'Transaction date',
+					//hideTrigger: true,
+					readOnly: true,
+					value: new Date(),
+					width: 300,
+				    triggers: {
+				        edit: {
+				            cls: 'x-form-date-trigger',
+							hideOnReadOnly: false,
+				            onClick: function() {
+								var me = this;
+			                
+								var msgBox = new Ext.window.MessageBox();
+								msgBox.textField.inputType = 'password';
+								msgBox.prompt('Override date', 'Supervisor code:', function(btn, text){
+								    if (btn == 'ok'){
+
+
+										// validate code
+										var code = text;
+
+										Ext.Ajax.request({
+											method: 'POST',
+											url: '/auth',
+											params: {
+												code: code
+											},
+											success: function(response, opts) {
+												var result = Ext.decode(response.responseText);
+												console.log(result);
+											
+
+												if(result.length == 1){
+											
+													me.field.setReadOnly(false);
+													me.field.triggers['edit'].hide();
+												
+												} else {
+													Ext.MessageBox.show({
+														title: 'Authentication error!', 
+														msg: 'Invalid approver code.',
+														icon: Ext.MessageBox.WARNING,
+														buttons: Ext.MessageBox.OK
+													});
+												}
+											}
+										});
+									
+								    }
+								});
+							
+							
+				            }
+				        }
+				    },
+					listeners: {
+						change: function(){
+							var txtRedeemPointsTransactionDate = Ext.getCmp('txtRedeemPointsTransactionDate');
+							var transactionDate = txtRedeemPointsTransactionDate.getValue();
+							// update exchange rates
+							redeemPointsPanel.getRate(user.dealershipCode, transactionDate, function(rate){
+								redeemPointsPanel.rate = rate;
+								
+								// recalculate points
+								redeemPointsPanel.calculatePoints();
+							});
+						}
+					}
+		        },
+					{
+						xtype: 'combo',
+						id: 'txtRedeemPointsTransactionType',
+						fieldLabel: 'Transaction type',
+						labelWidth: 120,
+						flex: 1,
+						padding: '0 0 0 5',
+						store: ['New vehicle', 'Parts & Service','Parts (OTC)','Gift Points','Others']
+					}
+				
+				]
+			}
+
+	
 		],
         buttons: [
 			{
@@ -296,13 +428,23 @@ Ext.onReady(function () {
 			
 			var txtRedeemPointsMemberId = Ext.getCmp('txtRedeemPointsMemberId');
 			
+			var txtRedeemPointsCardNumber = Ext.getCmp('txtRedeemPointsCardNumber');
+			
+			var txtRedeemPointsTransactionDate = Ext.getCmp('txtRedeemPointsTransactionDate');
+			var txtRedeemPointsTransactionType = Ext.getCmp('txtRedeemPointsTransactionType');
+			
 			var member = Ext.create('Member', {
 				id: txtRedeemPointsMemberId.value
 			});
-			member.set('cashPaid', txtRedeemPointsCashPaid.value);
-			member.set('pointsBalance', txtRedeemPointsNewPointsBalance.value);
-			member.set('orNumber', txtRedeemPointsORNumber.value);
-			member.set('orAmount', txtRedeemPointsORAmount.value);
+			member.set('cashPaid', txtRedeemPointsCashPaid.getValue());
+			member.set('pointsBalance', txtRedeemPointsNewPointsBalance.getValue());
+			member.set('orNumber', txtRedeemPointsORNumber.getValue());
+			member.set('orAmount', txtRedeemPointsORAmount.getValue());
+			
+			member.set('cardNumber', txtRedeemPointsCardNumber.getValue());
+			member.set('transactionDate', txtRedeemPointsTransactionDate.getValue());
+			member.set('transactionType', txtRedeemPointsTransactionType.getValue());
+			
 			
 			member.save({
 				success: function(record, operation) {
@@ -350,8 +492,14 @@ Ext.onReady(function () {
 			// if P then points = cash/15
 			var type = redeemPointsPanel.getForm().getRecord().data.type;
 			
+			// points exchange rate from server
+			var eliteRate = redeemPointsPanel.rate.elite;
+			var platinumEliteRate = redeemPointsPanel.rate.platinumElite;
+			
+			console.log('eliteRate:' + eliteRate, 'platinumEliteRate:' + platinumEliteRate);
+			
 			var redeemPoints = parseInt(pointsBalance - pointsPaid);
-			var addPoints = parseInt(pointsBalance + (cash / (type=='P'?15:20)));
+			var addPoints = parseInt(pointsBalance + (cash / (type=='P'? eliteRate : platinumEliteRate )));
 			
 			var newPoints = (pointsPaid > 0 ? redeemPoints : addPoints);
 			
@@ -374,8 +522,15 @@ Ext.onReady(function () {
         },
         items: [
 			{
+	            xtype: 'textfield',
+				id: 'txtEditMemberCardNumber',
+				name: 'cardNumber',
+	            fieldLabel: 'Loyalty card no',
+				width: 300,
+				emptyText: '0000-0000-0000-0000',
+	        }, 
+			{
 				xtype: 'fieldcontainer',
-				margin: '0 0 20 0',
 				layout: 'hbox',
 				items: [
 					{
@@ -388,14 +543,6 @@ Ext.onReady(function () {
 						hidden: true
 			        }, 
 					{
-			            xtype: 'textfield',
-						id: 'txtEditMemberCardNumber',
-						name: 'cardNumber',
-			            fieldLabel: 'Loyalty card no',
-						width: 200,
-						padding: '0 5 0 0',
-			        }, 
-					{
 						xtype: 'combo',
 						id: 'txtEditType',
 						fieldLabel: 'Type',
@@ -405,8 +552,7 @@ Ext.onReady(function () {
 							['P', 'Platinum Elite']
 						],
 						name: 'type',
-						labelWidth: 40,
-						width: 180
+						flex: 1
 					},
 					{
 			            xtype: 'textfield',
@@ -547,6 +693,7 @@ Ext.onReady(function () {
         title: 'New member details',
         width: 340,
         bodyPadding: 20,
+		autoScroll: true,
         fieldDefaults: {
             labelAlign: 'left',
             labelWidth: 120,
@@ -554,18 +701,17 @@ Ext.onReady(function () {
         },
         items: [
 			{
+	            xtype: 'textfield',
+				id: 'txtNewCardNumber',
+				name: 'cardNumber',
+	            fieldLabel: 'Loyalty card no',
+				width: 300,
+				emptyText: '0000-0000-0000-0000',
+	        }, 
+			{
 				xtype: 'fieldcontainer',
-				margin: '0 0 20 0',
 				layout: 'hbox',
 				items: [
-					{
-			            xtype: 'textfield',
-						id: 'txtNewCardNumber',
-						name: 'cardNumber',
-			            fieldLabel: 'Loyalty card no',
-						width: 200,
-						padding: '0 5 0 0',
-			        }, 
 					{
 						xtype: 'combo',
 						id: 'cmbNewType',
@@ -576,8 +722,7 @@ Ext.onReady(function () {
 							['P', 'Platinum Elite']
 						],
 						name: 'type',
-						labelWidth: 40,
-						width: 180
+						flex: 1
 					},
 					{
 			            xtype: 'textfield',
@@ -658,7 +803,8 @@ Ext.onReady(function () {
 				xtype: 'textareafield',
 				id: 'txtNewComments',
 				name: 'comment',
-				fieldLabel: 'Comments'
+				fieldLabel: 'Comments',
+				height: 30
 			}
 		],
         buttons: [
@@ -724,8 +870,16 @@ Ext.onReady(function () {
         },
         items: [
 			{
+	            xtype: 'textfield',
+				id: 'txtCardNumber',
+				name: 'cardNumber',
+	            fieldLabel: 'Loyalty card no',
+				width: 300,
+				emptyText: '0000-0000-0000-0000',
+				readOnly: true
+	        }, 
+			{
 				xtype: 'fieldcontainer',
-				margin: '0 0 20 0',
 				layout: 'hbox',
 				items: [
 					{
@@ -738,15 +892,6 @@ Ext.onReady(function () {
 						hidden: true
 			        }, 
 					{
-			            xtype: 'textfield',
-						id: 'txtCardNumber',
-						name: 'cardNumber',
-			            fieldLabel: 'Loyalty card no',
-						width: 200,
-						padding: '0 5 0 0',
-						readOnly: true
-			        }, 
-					{
 						xtype: 'combo',
 						fieldLabel: 'Type',
 						editable: false,
@@ -756,8 +901,7 @@ Ext.onReady(function () {
 						],
 						name: 'type',
 						readOnly: true,
-						labelWidth: 40,
-						width: 180
+						flex: 1
 					},
 					{
 			            xtype: 'textfield',
@@ -993,7 +1137,8 @@ Ext.onReady(function () {
 				id: 'txtSearchMemberCardNumber',
 				name: 'cardNumber',
 	            fieldLabel: 'Loyalty card no',
-				width: 200,
+				width: 300,
+				emptyText: '0000-0000-0000-0000',
 				margin: '0 0 20 0',
 				enableKeyEvents: true,
 				_listeners: {
@@ -1127,7 +1272,32 @@ Ext.onReady(function () {
 	var mainPanel = {
 		id: 'mainPanel',
 		xtype: 'panel',
-		title: 'Autohub Group Loyalty Program',
+		title:  'Autohub Group Loyalty Program &nbsp;' + '<img style="vertical-align: bottom; height: 32px" src="/app/img/autohub.png" />',
+		header: {
+			items: [
+				{
+					xtype: 'button',
+					id: 'btnLogout',
+					text: 'Logout',
+					scale: 'small',
+					hidden: true,
+		            handler: function() {
+						Ext.Ajax.request({
+							method: 'GET',
+							url: '/auth/logout',
+							success: function(response, opts) {
+								var result = Ext.decode(response.responseText);
+								console.log(result);
+								mainPanel.switch(loginPanel);
+								var txtLoginPassword = Ext.getCmp('txtLoginPassword');
+								txtLoginPassword.setValue('');
+							}
+						});
+		            }
+				}
+			
+			]
+		},
 		width: 750,
 		height: 550,
 		bodyStyle: 'padding-left: 50px; padding-right: 50px; padding-top: 35px; padding-bottom: 35px;',
@@ -1137,6 +1307,10 @@ Ext.onReady(function () {
 		switch: function(panel){
 			
 			Ext.getCmp('mainPanel').getLayout().setActiveItem(panel);
+			
+			var btnLogout = Ext.getCmp('btnLogout');
+			btnLogout.setHidden(panel == loginPanel);
+			
 		
 		}
 	};

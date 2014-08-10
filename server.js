@@ -54,19 +54,38 @@ app.get('/app', function(req, res, next) {
 */
 
 app.post('/auth', function(req, res, next){
-	var sql = 'select username, fullname from users where username = ? and password = ?';
-	console.log(req.body.username, req.body.password);
-	pool.query(sql, [req.body.username, req.body.password], function(err, rows) {
-		var reply = (err?err:rows);
-		res.json(reply);
-		if(rows.length > 0){
-			// log session
-			req.session.user = {
-				username: req.body.username
-			};
-			console.log(JSON.stringify(req.session.user) + ' recorded in session');
-		}
-	});
+	
+	if(req.body.code) {
+		
+		var sql = 'select approverCode from users where approverCode = ?';
+		pool.query(sql, [req.body.code], function(err, rows) {
+			var reply = (err?err:rows);
+			res.json(reply);
+		});
+		
+		
+	} else {
+		
+		
+		var sql = 'select username, fullname, role, dealershipCode from users where username = ? and password = ? and active = true';
+		console.log(req.body.username, req.body.password);
+		pool.query(sql, [req.body.username, req.body.password], function(err, rows) {
+			var reply = (err?err:rows);
+			res.json(reply);
+			if(rows.length > 0){
+				// log session
+				req.session.user = {
+					username: req.body.username,
+					dealershipCode: rows[0].dealershipCode
+				};
+				console.log(JSON.stringify(req.session.user) + ' recorded in session');
+			}
+		});
+		
+	}
+	
+	
+
 	
 });
 
@@ -76,6 +95,16 @@ app.get('/auth/user', function(req, res){
 	} else {
 		res.json({ message: 'empty session'});
 	}
+});
+
+app.get('/auth/logout', function(req, res){
+	if(req.session.user){
+		var user = req.session.user;
+		req.session.destroy(function(err){
+			console.log('destroy session for user ' + user.username);
+			res.json({logout: true, user: user});
+		});
+	} 
 });
 
 app.use(function(req,res, next){
@@ -135,8 +164,13 @@ router.get('/members', function(req, res){
  		}
 		filter = filter.substring(0,filter.length-5);
 		sql = sql + ' where ' + filter;
+		
+		// fetch only those matching logged in user's dealership code
+		sql = sql + " and dealershipCode='"+ req.session.user.dealershipCode +"' ";
+		//params.push(req.session.user.dealershipCode);
 	} 
-	console.log("GET", sql)
+	///xxx
+	console.log("GET", sql, params, req.session.user)
 	pool.query(sql, params, function(err, rows) {
 		res.json((err?err:rows));
 	});
@@ -195,7 +229,7 @@ router.put('/members/:id', function(req, res){
 	var params = [];
 	
 	for(column in member) {
-		if(column != 'id'){
+		if(column != 'id' && column != 'transactionDate' && column != 'transactionType'){
 			sql += column + '=?,';
 			sql2 += column + ',';
 			params.push(member[column]);
@@ -220,6 +254,10 @@ router.put('/members/:id', function(req, res){
 				params, 
 				function(err, rows){
 			
+					// record the points history
+					updatePointsHistory(member);
+			
+					// record what has done in the session
 					var log = {
 						before: before,
 						after: member
@@ -257,7 +295,56 @@ router.delete('/members/:id',function(req, res){
 
 
 
+// GET EXCHANGE RATES
+router.get('/util/rates',function(req, res){
+	var dealershipCode = req.query.dc;
+	var transactionDate = req.query.td;
+	
+	getRate(dealershipCode, transactionDate, req, res);
+	
+});
+
+
+
+
+
+
+
+
+
+// TEST ROUTES
+router.get('/test/:dc/:td',function(req, res){
+	var dealershipCode = req.params.dc;
+	var transactionDate = req.params.td;
+	
+	getRate(dealershipCode, transactionDate, req, res);
+	
+});
+
+
+
+
 /////////////////
+
+function getRate(dealershipCode, transactionDate, req, res){
+	var rate = {
+		elite: 0,
+		platinumElite: 0
+	};
+	
+	pool.query('select * from exchangeRate where dealershipCode = ? and ? between fromDate and toDate order by dealershipCode, fromDate desc', 
+		[ dealershipCode, transactionDate ], 
+		function(err, rows){
+			if(!err) {
+				rate.elite = rows[0].eliteRate;
+				rate.platinumElite = rows[0].platinumEliteRate;
+			}	
+			res.json(rate);
+		}
+	);
+	
+	return rate;
+}
 
 function logTransaction(type, user, data){	
 	var username = user.username;
@@ -266,6 +353,26 @@ function logTransaction(type, user, data){
 			username,
 			type,
 			JSON.stringify(data)
+		], 
+		function(err, rows){
+			console.log((err?err:rows));		
+		}
+	);
+}
+
+function updatePointsHistory(data){	
+	
+	console.log("xxxxxx", data);
+	
+	pool.query('insert into pointsHistory(orNumber, orAmount, cashPaid, newPointsBalance, cardNumber, transactionDate, transactionType) values(?,?,?,?,?,STR_TO_DATE(?,"%c-%e-%Y"),?);', 
+		[
+			data.orNumber,
+			data.orAmount,
+			data.cashPaid,
+			data.pointsBalance,
+			data.cardNumber,
+			data.transactionDate,
+			data.transactionType
 		], 
 		function(err, rows){
 			console.log((err?err:rows));		

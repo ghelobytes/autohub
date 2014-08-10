@@ -1,0 +1,3 @@
+05 AUG 2014
+
+- added columns role,dealership_code in users table

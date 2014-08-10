@@ -29,14 +29,19 @@
 	                type: 'json'
 	            }
 	        },
+			sorters: [
+				{
+					property: 'stamp',
+					direction: 'DESC'
+				}
+			],
 			autoLoad: true
 		
 		});
 		
-		Ext.create('Ext.grid.Panel', {
+		var grid = Ext.create('Ext.grid.Panel', {
 			xtype: 'grid',
 			title: 'Autohub - Transaction history',
-			renderTo: Ext.getBody(),
 			store: store,
 			columns: [
 				{ text: 'Stamp', dataIndex: 'stamp', xtype: 'datecolumn',   format:'m-d-Y g:i A', width: 180},
@@ -52,6 +57,12 @@
 				}
 			]
 		});
+		
+		Ext.create('Ext.container.Viewport', {
+			layout: 'fit',
+			items: grid
+		});
+		
 		
 	});
 	
