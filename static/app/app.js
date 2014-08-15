@@ -26,7 +26,9 @@ Ext.onReady(function () {
 					{name: 'address', type:'string'},
 					{name: 'comments', type:'string'},
 					{name: 'transactionDate', type: 'date', dateFormat: 'm-d-Y'},
-					{name: 'transactionType', type: 'string'}
+					{name: 'transactionType', type: 'string'},
+					{name: 'pointsRedeemed', type: 'int'},
+					{name: 'pointsAccumulated', type: 'int'}
 				],									
 		proxy: {
 			disableCaching: true,
@@ -119,7 +121,6 @@ Ext.onReady(function () {
 					txtRedeemPointsTransactionDate.setReadOnly(false);
 					txtRedeemPointsTransactionDate.triggers['edit'].hide();
 				}
-				
 				
 				// get exchange rates
 				this.getRate(user.dealershipCode, new Date(), function(rate){
@@ -433,6 +434,13 @@ Ext.onReady(function () {
 			var txtRedeemPointsTransactionDate = Ext.getCmp('txtRedeemPointsTransactionDate');
 			var txtRedeemPointsTransactionType = Ext.getCmp('txtRedeemPointsTransactionType');
 			
+			var txtRedeemPointsPointsPaid = Ext.getCmp('txtRedeemPointsPointsPaid');
+			
+			var txtRedeemPointsPointsBalance = Ext.getCmp('txtRedeemPointsPointsBalance');
+			var txtRedeemPointsNewPointsBalance = Ext.getCmp('txtRedeemPointsNewPointsBalance');
+			var pointsEarned = parseInt(txtRedeemPointsNewPointsBalance.getValue()) - parseInt(txtRedeemPointsPointsBalance.getValue());
+			pointsEarned = (pointsEarned < 0 ? 0 : pointsEarned);
+			
 			var member = Ext.create('Member', {
 				id: txtRedeemPointsMemberId.value
 			});
@@ -444,7 +452,9 @@ Ext.onReady(function () {
 			member.set('cardNumber', txtRedeemPointsCardNumber.getValue());
 			member.set('transactionDate', txtRedeemPointsTransactionDate.getValue());
 			member.set('transactionType', txtRedeemPointsTransactionType.getValue());
-			
+			member.set('pointsRedeemed', txtRedeemPointsPointsPaid.getValue());
+			member.set('pointsAccumulated', pointsEarned);
+		
 			
 			member.save({
 				success: function(record, operation) {
@@ -496,10 +506,15 @@ Ext.onReady(function () {
 			var eliteRate = redeemPointsPanel.rate.elite;
 			var platinumEliteRate = redeemPointsPanel.rate.platinumElite;
 			
-			console.log('eliteRate:' + eliteRate, 'platinumEliteRate:' + platinumEliteRate);
+			console.log('xxxxxx', pointsBalance, cash, type, eliteRate, platinumEliteRate);
 			
 			var redeemPoints = parseInt(pointsBalance - pointsPaid);
 			var addPoints = parseInt(pointsBalance + (cash / (type=='P'? eliteRate : platinumEliteRate )));
+			
+			//var pointsEarned = parseInt(cash / (type=='P'? eliteRate : platinumEliteRate ));
+			//var addPoints = parseInt(pointsBalance + pointsEarned);
+			
+			//xxx
 			
 			var newPoints = (pointsPaid > 0 ? redeemPoints : addPoints);
 			
@@ -1314,7 +1329,6 @@ Ext.onReady(function () {
 		
 		}
 	};
-
 	
 	Ext.create('Ext.container.Viewport', {
 		id: 'viewport',

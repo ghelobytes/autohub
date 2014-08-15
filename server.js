@@ -166,7 +166,7 @@ router.get('/members', function(req, res){
 		sql = sql + ' where ' + filter;
 		
 		// fetch only those matching logged in user's dealership code
-		sql = sql + " and dealershipCode='"+ req.session.user.dealershipCode +"' ";
+		// sql = sql + " and dealershipCode='"+ req.session.user.dealershipCode +"' ";
 		//params.push(req.session.user.dealershipCode);
 	} 
 	///xxx
@@ -229,7 +229,7 @@ router.put('/members/:id', function(req, res){
 	var params = [];
 	
 	for(column in member) {
-		if(column != 'id' && column != 'transactionDate' && column != 'transactionType'){
+		if(column != 'id' && column != 'transactionDate' && column != 'transactionType' && column != 'pointsRedeemed' && column != 'pointsAccumulated'){
 			sql += column + '=?,';
 			sql2 += column + ',';
 			params.push(member[column]);
@@ -308,9 +308,24 @@ router.get('/util/rates',function(req, res){
 
 // REPORT DATA
 router.get('/reports', function(req, res){
-	pool.query('select location, dealershipCode, count(*) as transactionCount, sum(newPointsBalance) as totalPoints from pointsHistory left join ' + 
-			   'users on pointsHistory.user = users.username group by location, dealershipCode', 
-		[], 
+	var sql = 'select location, dealershipCode, count(*) as transactionCount, sum(newPointsBalance) as totalPoints, ' +
+				'sum(pointsRedeemed) as pointsRedeemed, ' +
+				'sum(pointsAccumulated) as pointsAccumulated from pointsHistory left join ' + 
+				'users on pointsHistory.user = users.username';
+	var params = [];
+	
+	if(req.query.from && req.query.to){
+		sql = sql + ' where transactionDate between ? and ?';
+		params = [
+			req.query.from,
+			req.query.to
+		];
+	}
+	
+	sql = sql + ' group by location, dealershipCode';
+	
+	pool.query(sql, 
+		params, 
 		function(err, rows){	
 			res.json(err?err:rows);
 		}
@@ -372,9 +387,7 @@ function logTransaction(type, user, data){
 
 function updatePointsHistory(data, username){	
 	
-	console.log("xxxxxx", data);
-	
-	pool.query('insert into pointsHistory(orNumber, orAmount, cashPaid, newPointsBalance, cardNumber, transactionDate, transactionType, user) values(?,?,?,?,?,STR_TO_DATE(?,"%c-%e-%Y"),?,?);', 
+	pool.query('insert into pointsHistory(orNumber, orAmount, cashPaid, newPointsBalance, cardNumber, transactionDate, transactionType, user, pointsRedeemed, pointsAccumulated) values(?,?,?,?,?,STR_TO_DATE(?,"%c-%e-%Y"),?,?,?,?);', 
 		[
 			data.orNumber,
 			data.orAmount,
@@ -383,7 +396,9 @@ function updatePointsHistory(data, username){
 			data.cardNumber,
 			data.transactionDate,
 			data.transactionType,
-			username
+			username,
+			data.pointsRedeemed,
+			data.pointsAccumulated
 		], 
 		function(err, rows){
 			console.log((err?err:rows));		

@@ -8,8 +8,88 @@
 	
     <script>
 	
+
+	Ext.define('Ext.grid.feature.AbstractSummary', {
+	    override: 'Ext.grid.feature.AbstractSummary',
+	    init: function() {
+	        var me = this;
+ 
+	        me.callParent(arguments);
+ 
+	        me.generateSummaryData =  function(){
+ 
+	            var me = this,
+	                store = me.view.store,
+	                groups = store.getGroups().items,
+	                reader = store.getProxy().getReader(),
+	                len = groups.length,
+	                groupField = me.getGroupField(),
+	                data = {},
+	                lockingPartner = me.lockingPartner,
+	                i, group, record,
+	                root, summaryRows, hasRemote,
+	                convertedSummaryRow, remoteData, groupInfo;
+ 
+	            /**
+	             * @cfg {String} [remoteRoot=undefined]
+	             * The name of the property which contains the Array of summary objects.
+	             * It allows to use server-side calculated summaries.
+	             */
+ 
+	            if (me.remoteRoot && reader.rawData) {
+ 
+	                hasRemote = true;
+	                remoteData = {};
+	                // reset reader root and rebuild extractors to extract summaries data
+	                root = reader.getRootProperty();
+	                reader.setRootProperty(me.remoteRoot);
+	                reader.buildExtractors(true);
+	                summaryRows = reader.getRoot(reader.rawData) || [];
+	                len = summaryRows.length;
+ 
+	                for (i = 0; i < len; ++i) {
+	                    // Convert a raw data row into a Record's hash object using the Reader
+	                    convertedSummaryRow = reader.extractRecordData(summaryRows[i], me.readDataOptions);
+	                    remoteData[convertedSummaryRow[groupField]] = convertedSummaryRow;
+	                }
+ 
+	                // restore initial reader configuration
+	                reader.setRootProperty(root);
+	                reader.buildExtractors(true);
+	            }
+ 
+	            for (i = 0; i < len; ++i) {
+	                group = groups[i];
+	                groupInfo = me.getGroupInfo(group);
+	                // Something has changed or it doesn't exist, populate it
+ 
+	                record = me.populateRecord(group, groupInfo, remoteData);
+ 
+	                if (!lockingPartner || (me.view.ownerCt === me.view.ownerCt.ownerLockable.normalGrid)) {
+	                    groupInfo.lastGeneration =  group.generation;
+	                }
+ 
+	                data[group.getGroupKey()] = record;
+	            }
+	            return data;
+	        }
+	    }
+	});
+
+	/*
+	Ext.define('Ext.grid.feature.AbstractSummary',{
+		override: 'Ext.grid.feature.AbstractSummary',
+		init: function(){
+			console.log(this);
+		}
+	});
+	*/
+
+
 	Ext.onReady(function(){
 		
+
+
 		Ext.define('Report', {
 		    extend: 'Ext.data.Model',
 		    fields: [
@@ -21,7 +101,15 @@
 				},
 				{
 					name: 'totalPoints',
-					type: 'float'
+					type: 'int',
+				},
+				{
+					name: 'pointsRedeemed',
+					type: 'int'
+				},
+				{
+					name: 'pointsAccumulated',
+					type: 'int'
 				}
 			]
 		});
@@ -35,25 +123,74 @@
 	            url: '/reports',
 	            reader: {
 	                type: 'json'
-	            }
+	            },
+				extraParams: {
+					from: new Date(),
+					to: new Date()
+				}
 	        },
-			autoLoad: true
+			autoLoad: false
 		
 		});
 		
-
+		
 		var grid = Ext.create('Ext.grid.Panel', {
 			title: 'Accumulated Points',
-			width: 600,
+			width: 700,
+			deferEmptyText: false,
+			viewConfig: {
+				emptyText: 'XXXXXXXXXXXXXXXXXX',
+				listeners: {
+					refresh: function(grid){
+						//if(grid.getStore().data.items.length > 0)
+					}
+				}
+			},
 		    features: [
 				{
 		        	groupHeaderTpl: 'Location: {name}',
 		        	ftype: 'groupingsummary'
 		    	}
+				/*
+				Ext.create('Ext.grid.feature.GroupingSummary',{
+					groupHeaderTpl: 'Locationx: {name}',
+				})
+				*/
 			],
 		    store: store,
 			sortableColumns: false,
 			enableColumnHide: false,
+			tbar: [
+				{
+					xtype: 'datefield',
+					itemId: 'fromDate',
+					fieldLabel: 'From',
+					labelWidth: 40,
+					width: 170,
+					value: new Date()
+				},
+				{
+					xtype: 'datefield',
+					itemId: 'toDate',
+					fieldLabel: 'To',
+					labelWidth: 30,
+					width: 160,
+					value: new Date()
+				},
+				{
+					text: 'Load',
+					handler: function(){
+						var me = this;
+						var from = this.up().getComponent('fromDate').getValue();
+						var to = this.up().getComponent('toDate').getValue();
+
+						store.load({params:{from: from, to: to}});
+						
+					}
+				}
+				
+				
+			],
 		    columns: [
 				{
 			        dataIndex: 'dealershipCode',
@@ -62,22 +199,53 @@
 			        summaryRenderer: function(value){
 			            return Ext.String.format('&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Summary for {0} dealership{1}', value, value !== 1 ? 's' : '');
 			        },
-					flex: 2
+					flex: 1
 			    }, 
 				{
 			        dataIndex: 'transactionCount',
 			        text: 'Transactions',
 			        summaryType: 'sum',
-					flex: 1,
+					width: 130,
 					align: 'right'
 			    },
+				
 				{
-			        dataIndex: 'totalPoints',
-			        text: 'Points',
-			        summaryType: 'sum',
-					flex: 1,
-					align: 'right'
-			    }
+					text: 'Points',
+					columns: [
+					
+						{
+							xtype: 'numbercolumn',
+					        dataIndex: 'totalPoints',
+					        text: 'Total',
+					        summaryType: 'sum',
+							width: 100,
+							align: 'right',
+							format: '0,000',
+							summaryRenderer: Ext.util.Format.numberRenderer('0,000')
+					    },
+						{
+							xtype: 'numbercolumn',
+					        dataIndex: 'pointsRedeemed',
+					        text: 'Redeemed',
+					        summaryType: 'sum',
+							width: 120,
+							align: 'right',
+							format: '0,000',
+							summaryRenderer: Ext.util.Format.numberRenderer('0,000')
+					    },
+						{
+							xtype: 'numbercolumn',
+					        dataIndex: 'pointsAccumulated',
+					        text: 'Accumulated',
+					        summaryType: 'sum',
+							width: 130,
+							align: 'right',
+							format: '0,000',
+							summaryRenderer: Ext.util.Format.numberRenderer('0,000')
+					    }
+					
+					]
+				}
 			]
 		});
 		
