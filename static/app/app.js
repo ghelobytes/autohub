@@ -283,14 +283,33 @@ Ext.onReady(function () {
 			        }
 				]
 			},
+			
+			
 			{
-	            xtype: 'numberfield',
-				id: 'txtRedeemPointsNewPointsBalance',
-	            fieldLabel: 'New points bal.',
-				width: 300,
-				readOnly: true
-	        },
-
+				xtype: 'fieldcontainer',
+				layout: 'hbox',
+				items: [
+				
+					{
+			            xtype: 'numberfield',
+						id: 'txtRedeemPointsNewPointsBalance',
+			            fieldLabel: 'New points bal.',
+						width: 300,
+						readOnly: true
+			        },
+					{
+			            xtype: 'numberfield',
+						id: 'txtRedeemPointsPointsEarned',
+			            fieldLabel: 'Points earned',
+						labelWidth: 100,
+						readOnly: true,
+						flex: 1,
+						padding: '0 0 0 5'
+			        }
+				
+				]
+			},
+			
 			{
 				xtype: 'fieldcontainer',
 				layout: 'hbox',
@@ -438,8 +457,10 @@ Ext.onReady(function () {
 			
 			var txtRedeemPointsPointsBalance = Ext.getCmp('txtRedeemPointsPointsBalance');
 			var txtRedeemPointsNewPointsBalance = Ext.getCmp('txtRedeemPointsNewPointsBalance');
-			var pointsEarned = parseInt(txtRedeemPointsNewPointsBalance.getValue()) - parseInt(txtRedeemPointsPointsBalance.getValue());
-			pointsEarned = (pointsEarned < 0 ? 0 : pointsEarned);
+			var txtRedeemPointsPointsEarned = Ext.getCmp('txtRedeemPointsPointsEarned');
+			
+			//var pointsEarned = parseInt(txtRedeemPointsNewPointsBalance.getValue()) - parseInt(txtRedeemPointsPointsBalance.getValue());
+			
 			
 			var member = Ext.create('Member', {
 				id: txtRedeemPointsMemberId.value
@@ -453,7 +474,7 @@ Ext.onReady(function () {
 			member.set('transactionDate', txtRedeemPointsTransactionDate.getValue());
 			member.set('transactionType', txtRedeemPointsTransactionType.getValue());
 			member.set('pointsRedeemed', txtRedeemPointsPointsPaid.getValue());
-			member.set('pointsAccumulated', pointsEarned);
+			member.set('pointsAccumulated', txtRedeemPointsPointsEarned.getValue());
 		
 			
 			member.save({
@@ -491,6 +512,8 @@ Ext.onReady(function () {
 			var txtRedeemPointsPointsBalance = Ext.getCmp('txtRedeemPointsPointsBalance');
 			var txtRedeemPointsNewPointsBalance = Ext.getCmp('txtRedeemPointsNewPointsBalance');
 			
+			var txtRedeemPointsPointsEarned = Ext.getCmp('txtRedeemPointsPointsEarned');
+			
 			var orAmount = parseFloat(txtRedeemPointsORAmount.value);
 			var cash = parseFloat(txtRedeemPointsCashPaid.value + 0);
 			//var pointsRequired = parseInt((orAmount - cash)*100);
@@ -517,10 +540,9 @@ Ext.onReady(function () {
 			
 			//var newPoints = redeemPoints + addPoints;
 			
-			console.log(newPoints, pointsBalance, pointsPaid, addPoints, (type=='P'? eliteRate : platinumEliteRate ));
-			
 			var newPoints = (pointsBalance - pointsPaid) + addPoints;
 			
+			txtRedeemPointsPointsEarned.setValue(addPoints);
 			txtRedeemPointsPointsPaid.setValue(pointsPaid);
 			txtRedeemPointsNewPointsBalance.setValue(newPoints);
 			
@@ -922,7 +944,7 @@ Ext.onReady(function () {
 						flex: 1
 					},
 					{
-			            xtype: 'textfield',
+			            xtype: 'numberfield',
 			            id: 'txtPointsBalance',
 						name: 'pointsBalance',
 			            fieldLabel: 'Points balance',
