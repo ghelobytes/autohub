@@ -129,7 +129,7 @@
 					to: new Date()
 				}
 	        },
-			autoLoad: true
+			autoLoad: false
 		
 		});
 		
@@ -137,9 +137,10 @@
 		var grid = Ext.create('Ext.grid.Panel', {
 			title: 'Accumulated Points',
 			width: 700,
+			minHeight: 190,
 			deferEmptyText: false,
 			viewConfig: {
-				emptyText: 'XXXXXXXXXXXXXXXXXX',
+				emptyText: 'No records matched.',
 				listeners: {
 					refresh: function(grid){
 						//if(grid.getStore().data.items.length > 0)
@@ -199,7 +200,7 @@
 			        summaryRenderer: function(value){
 			            return Ext.String.format('&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Summary for {0} dealership{1}', value, value !== 1 ? 's' : '');
 			        },
-					flex: 1
+					flex: 1.5
 			    }, 
 				{
 			        dataIndex: 'transactionCount',
@@ -212,7 +213,7 @@
 				{
 					text: 'Points',
 					columns: [
-					
+						/*
 						{
 							xtype: 'numbercolumn',
 					        dataIndex: 'totalPoints',
@@ -223,6 +224,7 @@
 							format: '0,000',
 							summaryRenderer: Ext.util.Format.numberRenderer('0,000')
 					    },
+						*/
 						{
 							xtype: 'numbercolumn',
 					        dataIndex: 'pointsRedeemed',
@@ -249,15 +251,21 @@
 			]
 		});
 		
+		store.load({
+				params: {
+					from: Ext.Date.format(new Date(),'Y-m-d'),
+					to: Ext.Date.format(new Date,'Y-m-d')
+				}
+		});
 		
 		Ext.create('Ext.container.Viewport', {
 			layout: {
 			    type:'vbox',
-			    align:'center',
-			    _pack:'middle'
+			    align:'center'
 			},
 			items: grid
 		});
+		
 		
 		
 	});

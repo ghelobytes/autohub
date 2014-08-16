@@ -506,17 +506,15 @@ Ext.onReady(function () {
 			var eliteRate = redeemPointsPanel.rate.elite;
 			var platinumEliteRate = redeemPointsPanel.rate.platinumElite;
 			
-			console.log('xxxxxx', pointsBalance, cash, type, eliteRate, platinumEliteRate);
-			
 			var redeemPoints = parseInt(pointsBalance - pointsPaid);
 			var addPoints = parseInt(pointsBalance + (cash / (type=='P'? eliteRate : platinumEliteRate )));
 			
 			//var pointsEarned = parseInt(cash / (type=='P'? eliteRate : platinumEliteRate ));
 			//var addPoints = parseInt(pointsBalance + pointsEarned);
 			
-			//xxx
+			//var newPoints = (pointsPaid > 0 ? redeemPoints : addPoints);
 			
-			var newPoints = (pointsPaid > 0 ? redeemPoints : addPoints);
+			var newPoints = redeemPoints + addPoints;
 			
 			txtRedeemPointsPointsPaid.setValue(pointsPaid);
 			txtRedeemPointsNewPointsBalance.setValue(newPoints);
