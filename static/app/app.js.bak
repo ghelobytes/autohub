@@ -1,3 +1,15 @@
+/**
+ * ExtJS CurrencyField
+ * Updated version of http://develtech.wordpress.com/2011/03/06/number-field-with-currency-symbol-thousand-separator-with-international-support/#respond
+ * 
+ * Custom properties:
+ * currencyAtEnd      = false;
+ * currencyPrecision  = 2;
+ * currencySign       = '$ ';
+ * thousandSeparator  = ',';
+ * decimalSeparator   = '.';
+ */
+
 Ext.define('Ext.ux.NumericField', {
 	extend: 'Ext.form.field.Text',
 	alias: ['widget.numericfield','widget.numeric'],
@@ -7,18 +19,17 @@ Ext.define('Ext.ux.NumericField', {
 	//formatString: 'PHP 0,000.00',
 
 	onFocus: function(){
-		//this.callParent(arguments);
 		this.setRawValue(this.removeFormat(this.getRawValue()));
 	},
 
 	onBlur: function(){
-		//this.callParent(arguments);
 		if (this.formatString) {
 			this.setRawValue(this.applyFormat(this.getRawValue()));
 		}
 	},
 
 	setValue: function(v){
+		
 		this.setRawValue(this.applyFormat(v));
 	},
 	applyFormat: function(v){
@@ -41,6 +52,18 @@ Ext.define('Ext.ux.NumericField', {
 		return this.removeFormat(val);
 	}
 });
+
+/*
+Ext.define('Ext.form.field.Text',{
+	override: 'Ext.form.field.Text',
+	setValue: function(val){
+		val 
+		this.callParent([val]);
+		//return this;
+	}
+});
+*/
+
 
 
 
@@ -80,13 +103,15 @@ Ext.onReady(function () {
 			url : '/members'
 		}
 	});
+	
+
 
 	var loginPanel = Ext.create('Ext.form.Panel', {
 		id: 'loginPanel',
         frame: true,
         title: 'Enter credentials',
         margin: 110,
-        bodyPadding: 30,
+        bodyPadding: 10,
         fieldDefaults: {
             labelAlign: 'left',
             labelWidth: 120,
@@ -98,7 +123,6 @@ Ext.onReady(function () {
 				id: 'txtLoginUsername',
 				name: 'id',
 	            fieldLabel: 'Username',
-				value: 'jonathan'
 	        }, 
 			{
 	            xtype: 'textfield',
@@ -106,7 +130,6 @@ Ext.onReady(function () {
 				name: 'orNo',
 	            fieldLabel: 'Password',
 				inputType: 'password',
-				value: 'jonathan'
 	        }
 		],
         buttons: [
@@ -117,8 +140,8 @@ Ext.onReady(function () {
 						method: 'POST',
 						url: '/auth',
 						params: {
-							username: Ext.getCmp('txtLoginUsername').getValue(),
-							password: Ext.getCmp('txtLoginPassword').getValue()
+							username: Ext.getCmp('txtLoginUsername').value,
+							password: Ext.getCmp('txtLoginPassword').value
 						},
 						success: function(response, opts) {
 							var result = Ext.decode(response.responseText);
@@ -226,7 +249,8 @@ Ext.onReady(function () {
 						flex: 1
 					},
 					{
-			            xtype: 'numericfield',
+						// xxx
+			            xtype: 'textfield',
 			            id: 'txtRedeemPointsPointsBalance',
 						name: 'pointsBalance',
 			            fieldLabel: 'Points balance',
@@ -280,7 +304,7 @@ Ext.onReady(function () {
 						flex: 1
 			        }, 
 					{
-			            xtype: 'numericfield',
+			            xtype: 'textfield',
 						id: 'txtRedeemPointsORAmount',
 			            fieldLabel: 'OR amount',
 						labelWidth: 100,
@@ -294,7 +318,7 @@ Ext.onReady(function () {
 						},
 						flex: 1,
 						padding: '0 0 0 5',
-						formatString: 'Php 0,000.00'
+						formatString: 'PHP 0,000.00'
 				
 			        }
 				
@@ -305,7 +329,7 @@ Ext.onReady(function () {
 				layout: 'hbox',
 				items: [
 					{
-			            xtype: 'numericfield',
+			            xtype: 'textfield',
 						id: 'txtRedeemPointsCashPaid',
 			            fieldLabel: 'Enter cash paid',
 						hideTrigger: true,
@@ -316,19 +340,16 @@ Ext.onReady(function () {
 								redeemPointsPanel.calculatePoints();
 							}
 						},
-						flex: 1,
-						formatString: 'Php 0,000.00'
+						flex: 1
 			        },
 					{
-			            xtype: 'numericfield',
+			            xtype: 'numberfield',
 						id: 'txtRedeemPointsPointsPaid',
 			            fieldLabel: 'Points paid',
 						labelWidth: 100,
 						readOnly: true,
 						flex: 1,
-						padding: '0 0 0 5',
-						formatString: '0,000',
-						tabIndex: -1
+						padding: '0 0 0 5'
 			        }
 				]
 			},
@@ -340,23 +361,20 @@ Ext.onReady(function () {
 				items: [
 				
 					{
-			            xtype: 'numericfield',
+			            xtype: 'numberfield',
 						id: 'txtRedeemPointsNewPointsBalance',
 			            fieldLabel: 'New points bal.',
 						width: 300,
-						readOnly: true,
-						formatString: '0,000'
+						readOnly: true
 			        },
 					{
-			            xtype: 'numericfield',
+			            xtype: 'numberfield',
 						id: 'txtRedeemPointsPointsEarned',
 			            fieldLabel: 'Points earned',
 						labelWidth: 100,
 						readOnly: true,
 						flex: 1,
-						padding: '0 0 0 5',
-						formatString: '0,0000',
-						tabIndex: -1
+						padding: '0 0 0 5'
 			        }
 				
 				]
@@ -458,43 +476,11 @@ Ext.onReady(function () {
 			{
 	            text: 'Confirm',
 	            handler: function() {
-					
-					
-					
-					var txtRedeemPointsPointsPaid = Ext.getCmp('txtRedeemPointsPointsPaid');
-					var pointsPaid = parseInt(txtRedeemPointsPointsPaid.getValue()) + 0;
-					
-					
-					var txtRedeemPointsPointsBalance = Ext.getCmp('txtRedeemPointsPointsBalance');
-					var pointsBalance = parseInt(txtRedeemPointsPointsBalance.getValue()) + 0;
-					
-					if(pointsBalance < 500)
-					{
-						Ext.Msg.show({
-							title:'Sorry!', 
-							msg:'To redeem points, balance must be greater than 500 points.',
-							buttons: Ext.Msg.OK,
-						});
-						return;
-					}
-					
-					if(pointsPaid > pointsBalance)
-					{
-						Ext.Msg.show({
-							title:'Sorry!', 
-							msg:'The points you\'re trying to redeem is greater than the current accumulated points.',
-							buttons: Ext.Msg.OK,
-						});
-						return;
-					}
-					
-					/*
 					var txtRedeemPointsCashPaid = Ext.getCmp('txtRedeemPointsCashPaid');
-					var cash = parseFloat(txtRedeemPointsCashPaid.getValue() + 0);
+					var cash = parseFloat(txtRedeemPointsCashPaid.value + 0);
 		
 					var txtRedeemPointsNewPointsBalance = Ext.getCmp('txtRedeemPointsNewPointsBalance');
-					var newPoints = parseInt(txtRedeemPointsNewPointsBalance.getValue() + 0);
-					
+					var newPoints = parseInt(txtRedeemPointsNewPointsBalance.value + 0);
 					
 					if(newPoints < 500 & cash == 0)
 					{
@@ -505,10 +491,9 @@ Ext.onReady(function () {
 						});
 						return;
 					}
-					*/
 					
 					var formPanel = Ext.getCmp('redeemPointsPanel');
-					var id = Ext.getCmp('txtRedeemPointsMemberId').getValue();
+					var id = Ext.getCmp('txtRedeemPointsMemberId').value;
 					formPanel.updateMember(function(){
 						memberPanel.loadMember(id, function(){
 							mainPanel.switch(memberPanel);
@@ -548,7 +533,7 @@ Ext.onReady(function () {
 			
 			
 			var member = Ext.create('Member', {
-				id: txtRedeemPointsMemberId.getValue()
+				id: txtRedeemPointsMemberId.value
 			});
 			member.set('cashPaid', txtRedeemPointsCashPaid.getValue());
 			member.set('pointsBalance', txtRedeemPointsNewPointsBalance.getValue());
@@ -592,18 +577,64 @@ Ext.onReady(function () {
 		calculatePoints: function(){
 			var txtRedeemPointsORAmount = Ext.getCmp('txtRedeemPointsORAmount');
 			var txtRedeemPointsCashPaid = Ext.getCmp('txtRedeemPointsCashPaid');
-			
+			var txtRedeemPointsPointsPaid = Ext.getCmp('txtRedeemPointsPointsPaid');
+	
+			var txtRedeemPointsPointsBalance = Ext.getCmp('txtRedeemPointsPointsBalance');
+			var txtRedeemPointsNewPointsBalance = Ext.getCmp('txtRedeemPointsNewPointsBalance');
+	
+			var txtRedeemPointsPointsEarned = Ext.getCmp('txtRedeemPointsPointsEarned');
+	
+			var orAmount = parseFloat(txtRedeemPointsORAmount.value);
+			var cash = parseFloat(txtRedeemPointsCashPaid.value + 0);
+			//var pointsRequired = parseInt((orAmount - cash)*100);
+			var pointsPaid = parseInt(orAmount - cash);
+			var pointsBalance = parseInt(txtRedeemPointsPointsBalance.value);
+	
+	
+			// if E then points = cash/20
+			// if P then points = cash/15
+			var type = redeemPointsPanel.getForm().getRecord().data.type;
+	
+			// points exchange rate from server
+			var eliteRate = redeemPointsPanel.rate.elite;
+			var platinumEliteRate = redeemPointsPanel.rate.platinumElite;
+	
+			var redeemPoints = parseInt(pointsBalance - pointsPaid);
+			//var addPoints = parseInt(pointsBalance + (cash / (type=='P'? eliteRate : platinumEliteRate )));
+			var addPoints = parseInt((cash / (type =='P'? platinumEliteRate : eliteRate )));
+	
+			//var pointsEarned = parseInt(cash / (type=='P'? eliteRate : platinumEliteRate ));
+			//var addPoints = parseInt(pointsBalance + pointsEarned);
+	
+			//var newPoints = (pointsPaid > 0 ? redeemPoints : addPoints);
+	
+			//var newPoints = redeemPoints + addPoints;
+	
+			var newPoints = (pointsBalance - pointsPaid) + addPoints;
+	
+			txtRedeemPointsPointsEarned.setValue(addPoints);
+			txtRedeemPointsPointsPaid.setValue(pointsPaid);
+			txtRedeemPointsNewPointsBalance.setValue(newPoints);
+	
+		},
+		calculatePoints2: function(){
+			var txtRedeemPointsORAmount = Ext.getCmp('txtRedeemPointsORAmount');
+			var txtRedeemPointsCashPaid = Ext.getCmp('txtRedeemPointsCashPaid');
 			var txtRedeemPointsPointsPaid = Ext.getCmp('txtRedeemPointsPointsPaid');
 			
 			var txtRedeemPointsPointsBalance = Ext.getCmp('txtRedeemPointsPointsBalance');
 			var txtRedeemPointsNewPointsBalance = Ext.getCmp('txtRedeemPointsNewPointsBalance');
 			
+			
+			
+			
 			var txtRedeemPointsPointsEarned = Ext.getCmp('txtRedeemPointsPointsEarned');
 			
-			var orAmount = parseFloat(txtRedeemPointsORAmount.getValue());
-			var cash = parseFloat(txtRedeemPointsCashPaid.getValue() + 0);
+			var orAmount = parseFloat(txtRedeemPointsORAmount.value);
+			var cash = parseFloat(txtRedeemPointsCashPaid.value + 0);
 			//var pointsRequired = parseInt((orAmount - cash)*100);
 			var pointsPaid = parseInt(orAmount - cash);
+			//pointsPaid = pointsPaid > 0 ? pointsPaid : 0;
 			var pointsBalance = parseInt(txtRedeemPointsPointsBalance.getValue());
 			
 			
@@ -616,24 +647,16 @@ Ext.onReady(function () {
 			var platinumEliteRate = redeemPointsPanel.rate.platinumElite;
 			
 			var redeemPoints = parseInt(pointsBalance - pointsPaid);
-			//var addPoints = parseInt(pointsBalance + (cash / (type=='P'? eliteRate : platinumEliteRate )));
 			var addPoints = parseInt((cash / (type =='P'? platinumEliteRate : eliteRate )));
-			
-			//var pointsEarned = parseInt(cash / (type=='P'? eliteRate : platinumEliteRate ));
-			//var addPoints = parseInt(pointsBalance + pointsEarned);
-			
-			//var newPoints = (pointsPaid > 0 ? redeemPoints : addPoints);
-			
-			//var newPoints = redeemPoints + addPoints;
 			
 			var newPoints = (pointsBalance - pointsPaid) + addPoints;
 			
-			if(addPoints > 0)
-				txtRedeemPointsPointsEarned.setValue(addPoints);
-			if(pointsPaid > 0)
-				txtRedeemPointsPointsPaid.setValue(pointsPaid);
-			if(newPoints > 0)
-				txtRedeemPointsNewPointsBalance.setValue(newPoints);
+			txtRedeemPointsPointsEarned.setValue(addPoints);
+			txtRedeemPointsPointsPaid.setValue(pointsPaid);
+			txtRedeemPointsNewPointsBalance.setValue(newPoints);
+			
+			//console.log(txtRedeemPointsPointsBalance.value, txtRedeemPointsPointsBalance.getValue(), pointsBalance, pointsPaid, addPoints, newPoints);
+			
 			
 		}
     });
@@ -684,14 +707,13 @@ Ext.onReady(function () {
 						flex: 1
 					},
 					{
-			            xtype: 'numericfield',
+			            xtype: 'textfield',
 			            id: 'txtEditPointsBalance',
 						name: 'pointsBalance',
 			            fieldLabel: 'Points balance',
 						labelWidth: 100,
 						flex: 1,
-						padding: '0 0 0 5',
-						formatString: '0,000'
+						padding: '0 0 0 5'
 			        }
 				]
 			},
@@ -762,7 +784,7 @@ Ext.onReady(function () {
 	            text: 'Save',
 	            handler: function() {
 					var formPanel = Ext.getCmp('memberEditPanel');
-					var id = Ext.getCmp('txtEditMemberId').getValue();
+					var id = Ext.getCmp('txtEditMemberId').value;
 					formPanel.updateMember(function(){
 						memberPanel.loadMember(id, function(){
 							mainPanel.switch(memberPanel);
@@ -855,14 +877,13 @@ Ext.onReady(function () {
 						flex: 1
 					},
 					{
-			            xtype: 'numericfield',
+			            xtype: 'textfield',
 			            id: 'txtNewPointsBalance',
 						name: 'pointsBalance',
 			            fieldLabel: 'Points balance',
 						labelWidth: 100,
 						flex: 1,
-						padding: '0 0 0 5',
-						formatString: '0,000'
+						padding: '0 0 0 5'
 			        }
 				]
 			},
@@ -944,17 +965,17 @@ Ext.onReady(function () {
 	            handler: function() {
 					
 					var newMember = Ext.create('Member', {
-						lastname: Ext.getCmp('txtNewLastname').getValue(),
-						firstname: Ext.getCmp('txtNewFirstname').getValue(),
-						middlename: Ext.getCmp('txtNewMiddlename').getValue(),
-						mobile: Ext.getCmp('txtNewMobile').getValue(),
-						mobile2: Ext.getCmp('txtNewMobile2').getValue(),
-						email: Ext.getCmp('txtNewEmail').getValue(),
-						pointsBalance: Ext.getCmp('txtNewPointsBalance').getValue(), 
-						cardNumber: Ext.getCmp('txtNewCardNumber').getValue(),
-						address: Ext.getCmp('txtNewAddress').getValue(),
-						type: Ext.getCmp('cmbNewType').getValue(),
-						comments: Ext.getCmp('txtNewComments').getValue()
+						lastname: Ext.getCmp('txtNewLastname').value,
+						firstname: Ext.getCmp('txtNewFirstname').value,
+						middlename: Ext.getCmp('txtNewMiddlename').value,
+						mobile: Ext.getCmp('txtNewMobile').value,
+						mobile2: Ext.getCmp('txtNewMobile2').value,
+						email: Ext.getCmp('txtNewEmail').value,
+						pointsBalance: Ext.getCmp('txtNewPointsBalance').value, 
+						cardNumber: Ext.getCmp('txtNewCardNumber').value,
+						address: Ext.getCmp('txtNewAddress').value,
+						type: Ext.getCmp('cmbNewType').value,
+						comments: Ext.getCmp('txtNewComments').value
 					});
 					newMember.save({
 						success: function(record, operation) {
@@ -1035,15 +1056,14 @@ Ext.onReady(function () {
 						flex: 1
 					},
 					{
-			            xtype: 'numericfield',
+			            xtype: 'numberfield',
 			            id: 'txtPointsBalance',
 						name: 'pointsBalance',
 			            fieldLabel: 'Points balance',
 						readOnly: true,
 						labelWidth: 100,
 						flex: 1,
-						padding: '0 0 0 5',
-						formatString: '0,000'
+						padding: '0 0 0 5'
 			        }
 				]
 			},
@@ -1273,12 +1293,9 @@ Ext.onReady(function () {
 				emptyText: '0000-0000-0000-0000',
 				margin: '0 0 20 0',
 				enableKeyEvents: true,
-				listeners: {
+				_listeners: {
 					keypress: function(comp, e){
-						if(e.charCode == 13){
-							var btnSearch = Ext.getCmp('btnSearch');
-							btnSearch.click();
-						}
+						//if(e.charCode == 13)
 						
 					}
 				}
@@ -1296,49 +1313,19 @@ Ext.onReady(function () {
 						id: 'txtSearchLastname',
 		                name: 'lastname',
 						emptyText: 'last name',
-						enableKeyEvents: true,
-						listeners: {
-							keypress: function(comp, e){
-								if(e.charCode == 13){
-									var btnSearch = Ext.getCmp('btnSearch');
-									btnSearch.click();
-								}
-						
-							}
-						}
 		            },
 					{
 						flex: 1,
 		                name: 'firstname',
 						id: 'txtSearchFirstname',
 						emptyText: 'first name',
-						padding: '0 5 0 5',
-						enableKeyEvents: true,
-						listeners: {
-							keypress: function(comp, e){
-								if(e.charCode == 13){
-									var btnSearch = Ext.getCmp('btnSearch');
-									btnSearch.click();
-								}
-						
-							}
-						}
+						padding: '0 5 0 5'
 		            },
 					{
 						flex: 1,
 						id: 'txtSearchMiddlename',
 		                name: 'middlename',
-						emptyText: 'middle name',
-						enableKeyEvents: true,
-						listeners: {
-							keypress: function(comp, e){
-								if(e.charCode == 13){
-									var btnSearch = Ext.getCmp('btnSearch');
-									btnSearch.click();
-								}
-						
-							}
-						}
+						emptyText: 'middle name'
 		            }
 				]
 	        },
@@ -1351,17 +1338,7 @@ Ext.onReady(function () {
 						flex: 1,
 						id: 'txtSearchMobile',
 						name: 'mobile',
-						fieldLabel: 'Primary mobile',
-						enableKeyEvents: true,
-						listeners: {
-							keypress: function(comp, e){
-								if(e.charCode == 13){
-									var btnSearch = Ext.getCmp('btnSearch');
-									btnSearch.click();
-								}
-						
-							}
-						}
+						fieldLabel: 'Primary mobile'
 					},
 					{
 						flex: 1,
@@ -1369,17 +1346,7 @@ Ext.onReady(function () {
 						name: 'mobile2',
 						fieldLabel: 'Secondary mobile',
 						labelWidth: 130,
-						padding: '0 0 0 5',
-						enableKeyEvents: true,
-						listeners: {
-							keypress: function(comp, e){
-								if(e.charCode == 13){
-									var btnSearch = Ext.getCmp('btnSearch');
-									btnSearch.click();
-								}
-						
-							}
-						}
+						padding: '0 0 0 5'
 					}
 				]
 			},
@@ -1387,17 +1354,7 @@ Ext.onReady(function () {
 	            xtype: 'textfield',
 	            id: 'txtSearchEmail',
 				name: 'email',
-	            fieldLabel: 'Email',
-				enableKeyEvents: true,
-				listeners: {
-					keypress: function(comp, e){
-						if(e.charCode == 13){
-							var btnSearch = Ext.getCmp('btnSearch');
-							btnSearch.click();
-						}
-						
-					}
-				}
+	            fieldLabel: 'Email'
 	        }
 		],
         buttons: [
@@ -1412,15 +1369,14 @@ Ext.onReady(function () {
 			{
 	            text: 'Search',
 				id: 'btnSearch',
-				handler: function(){ this.click(); }, 
-	            click: function() {
+	            handler: function() {
 					
 					var params = {};
 					var items = ['txtSearchMemberCardNumber', 'txtSearchLastname', 'txtSearchFirstname', 'txtSearchMiddlename','txtSearchMobile','txtSearchMobile2','txtSearchEmail'];
 					for(var item in items ){
 						var field = Ext.getCmp(items[item]);
-						if(field.getValue())
-							params[field.name] = field.getValue();
+						if(field.value)
+							params[field.name] = field.value;
 					}
 					if(Object.keys(params).length > 0){
 						
