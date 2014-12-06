@@ -592,7 +592,7 @@ Ext.onReady(function () {
 		calculatePoints: function(){
 			var txtRedeemPointsORAmount = Ext.getCmp('txtRedeemPointsORAmount');
 			var txtRedeemPointsCashPaid = Ext.getCmp('txtRedeemPointsCashPaid');
-			
+
 			var txtRedeemPointsPointsPaid = Ext.getCmp('txtRedeemPointsPointsPaid');
 			
 			var txtRedeemPointsPointsBalance = Ext.getCmp('txtRedeemPointsPointsBalance');
@@ -630,7 +630,7 @@ Ext.onReady(function () {
 			
 			if(addPoints > 0)
 				txtRedeemPointsPointsEarned.setValue(addPoints);
-			if(pointsPaid > 0)
+			if(pointsPaid >= 0)
 				txtRedeemPointsPointsPaid.setValue(pointsPaid);
 			if(newPoints > 0)
 				txtRedeemPointsNewPointsBalance.setValue(newPoints);
