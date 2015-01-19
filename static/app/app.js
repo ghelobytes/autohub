@@ -173,7 +173,17 @@ Ext.onReady(function () {
 				
 			}
 		},
+		updateConversionRateUI: function(rate){
+			var type = redeemPointsPanel.getForm().getRecord().data.type;
+	
+			// reflect this in UI
+			var txtConversionRate = Ext.getCmp('txtConversionRate');
+			var amount = (type === 'P' ? rate.platinumElite : elite);
+			amount = Ext.util.Format.number(parseFloat(amount), '0,000.00');
+			txtConversionRate.setText('Conversion Rate: Php ' + amount + ' = 1 point');
+		},
 		getRate: function(dealershipCode, transactionDate, callback){
+			var me = this;
 			Ext.Ajax.request({
 				method: 'GET',
 				url: '/util/rates',
@@ -184,6 +194,9 @@ Ext.onReady(function () {
 				success: function(response, opts) {
 					var result = Ext.decode(response.responseText);
 					console.log(result);
+					
+					me.updateConversionRateUI(result);
+					
 				
 					if(callback)
 						callback(result);
@@ -338,7 +351,6 @@ Ext.onReady(function () {
 				xtype: 'fieldcontainer',
 				layout: 'hbox',
 				items: [
-				
 					{
 			            xtype: 'numericfield',
 						id: 'txtRedeemPointsNewPointsBalance',
@@ -361,12 +373,10 @@ Ext.onReady(function () {
 				
 				]
 			},
-			
 			{
 				xtype: 'fieldcontainer',
 				layout: 'hbox',
 				items: [
-				
 					{
 		            xtype: 'datefield',
 					id: 'txtRedeemPointsTransactionDate',
@@ -433,6 +443,8 @@ Ext.onReady(function () {
 							redeemPointsPanel.getRate(user.dealershipCode, transactionDate, function(rate){
 								redeemPointsPanel.rate = rate;
 								
+								redeemPointsPanel.updateConversionRateUI(rate);
+								
 								// recalculate points
 								redeemPointsPanel.calculatePoints();
 							});
@@ -450,9 +462,14 @@ Ext.onReady(function () {
 					}
 				
 				]
+			},
+			
+			{
+				xtype: 'label',
+				id: 'txtConversionRate',
+				text: ''
 			}
-
-	
+			
 		],
         buttons: [
 			{
@@ -610,6 +627,7 @@ Ext.onReady(function () {
 			// if E then points = cash/20
 			// if P then points = cash/15
 			var type = redeemPointsPanel.getForm().getRecord().data.type;
+			
 			
 			// points exchange rate from server
 			var eliteRate = redeemPointsPanel.rate.elite;
