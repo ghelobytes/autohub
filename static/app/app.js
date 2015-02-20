@@ -3,7 +3,7 @@ Ext.define('Ext.ux.NumericField', {
 	alias: ['widget.numericfield','widget.numeric'],
 	maskRe: /[0-9 .,-]/,
 	fieldStyle: 'text-align: right;',
-	
+
 	//formatString: 'PHP 0,000.00',
 
 	onFocus: function(){
@@ -25,15 +25,15 @@ Ext.define('Ext.ux.NumericField', {
 		v = v + '';
 		v = v ? v.replace(/\,/g,''):v;
 		return (this.formatString ? Ext.util.Format.number(v, this.formatString) : v);
-		
+
 	},
 	removeFormat: function(v){
-		
+
 		var o = [];
 		for(i in v){
 			if(!isNaN(v[i])|| v[i] == '.' || v[i] == '-'){
 				o.push(v[i]);
-			}	
+			}
 		}
 		return o.join('').trim();
 	},
@@ -45,25 +45,25 @@ Ext.define('Ext.ux.NumericField', {
 
 
 Ext.onReady(function () {
-	
-	
+
+
 	var currentMember;
 	var user;
-	
+
 	// define a model for member
 	Ext.define('Member', {
 		extend: 'Ext.data.Model',
-		fields: [ 	
-					{name: 'id', type: 'int'}, 
-					{name: 'lastname', type: 'string'}, 
-					{name: 'firstname', type: 'string'}, 
-					{name: 'middlename', type: 'string'}, 
-					{name: 'mobile', type: 'string'}, 
-					{name: 'mobile2', type: 'string'}, 
-					{name: 'email', type: 'string'}, 
+		fields: [
+					{name: 'id', type: 'int'},
+					{name: 'lastname', type: 'string'},
+					{name: 'firstname', type: 'string'},
+					{name: 'middlename', type: 'string'},
+					{name: 'mobile', type: 'string'},
+					{name: 'mobile2', type: 'string'},
+					{name: 'email', type: 'string'},
 					{name: 'pointsBalance', type:'int'},
-					{name: 'orNumber', type: 'string'}, 
-					{name: 'orAmount', type: 'float'}, 
+					{name: 'orNumber', type: 'string'},
+					{name: 'orAmount', type: 'float'},
 					{name: 'cashPaid', type:'float'},
 					{name: 'type', type: 'string'},
 					{name: 'cardNumber', type:'string'},
@@ -73,7 +73,7 @@ Ext.onReady(function () {
 					{name: 'transactionType', type: 'string'},
 					{name: 'pointsRedeemed', type: 'int'},
 					{name: 'pointsAccumulated', type: 'int'}
-				],									
+				],
 		proxy: {
 			disableCaching: true,
 			type: 'rest',
@@ -99,7 +99,7 @@ Ext.onReady(function () {
 				name: 'id',
 	            fieldLabel: 'Username',
 				value: 'jonathan'
-	        }, 
+	        },
 			{
 	            xtype: 'textfield',
 				id: 'txtLoginPassword',
@@ -122,13 +122,13 @@ Ext.onReady(function () {
 						},
 						success: function(response, opts) {
 							var result = Ext.decode(response.responseText);
-							
+
 							if(result.length == 1){
 								user = result[0];
 								mainPanel.switch(searchPanel);
 							} else {
 								Ext.MessageBox.show({
-									title: 'Authentication error!', 
+									title: 'Authentication error!',
 									msg: 'Invalid username or password.',
 									icon: Ext.MessageBox.WARNING,
 									buttons: Ext.MessageBox.OK
@@ -140,8 +140,8 @@ Ext.onReady(function () {
 	   	 	}
 		],
     });
-	
-	
+
+
 	var redeemPointsPanel = Ext.create('Ext.form.Panel', {
 		id: 'redeemPointsPanel',
         frame: true,
@@ -155,27 +155,27 @@ Ext.onReady(function () {
         },
 		listeners: {
 			activate: function(){
-				
+
 				var txtRedeemPointsTransactionDate = Ext.getCmp('txtRedeemPointsTransactionDate');
 				if(user.role === 'CASHIER') {
 					txtRedeemPointsTransactionDate.setReadOnly(true);
-					txtRedeemPointsTransactionDate.triggers['edit'].show();	
+					txtRedeemPointsTransactionDate.triggers['edit'].show();
 				} else {
 					// SYSAD, SUPERVISOR
 					txtRedeemPointsTransactionDate.setReadOnly(false);
 					txtRedeemPointsTransactionDate.triggers['edit'].hide();
 				}
-				
+
 				// get exchange rates
 				this.getRate(user.dealershipCode, new Date(), function(rate){
 					redeemPointsPanel.rate = rate;
 				});
-				
+
 			}
 		},
 		updateConversionRateUI: function(rate){
 			var type = redeemPointsPanel.getForm().getRecord().data.type;
-	
+
 			// reflect this in UI
 			var txtConversionRate = Ext.getCmp('txtConversionRate');
 			var amount = (type === 'P' ? rate.platinumElite : elite);
@@ -194,10 +194,10 @@ Ext.onReady(function () {
 				success: function(response, opts) {
 					var result = Ext.decode(response.responseText);
 					console.log(result);
-					
+
 					me.updateConversionRateUI(result);
-					
-				
+
+
 					if(callback)
 						callback(result);
 				}
@@ -212,7 +212,7 @@ Ext.onReady(function () {
 				width: 300,
 				emptyText: '0000-0000-0000-0000',
 				readOnly: true
-	        }, 
+	        },
 			{
 				xtype: 'fieldcontainer',
 				layout: 'hbox',
@@ -225,7 +225,7 @@ Ext.onReady(function () {
 						width: 200,
 						readOnly: true,
 						hidden: true
-			        }, 
+			        },
 					{
 						xtype: 'combo',
 						fieldLabel: 'Type',
@@ -285,13 +285,13 @@ Ext.onReady(function () {
 				xtype: 'fieldcontainer',
 				layout: 'hbox',
 				items: [
-				
+
 					{
 			            xtype: 'textfield',
 						id: 'txtRedeemPointsORNumber',
 			            fieldLabel: 'OR number',
 						flex: 1
-			        }, 
+			        },
 					{
 			            xtype: 'numericfield',
 						id: 'txtRedeemPointsORAmount',
@@ -308,9 +308,9 @@ Ext.onReady(function () {
 						flex: 1,
 						padding: '0 0 0 5',
 						formatString: 'Php 0,000.00'
-				
+
 			        }
-				
+
 				]
 			},
 			{
@@ -345,8 +345,8 @@ Ext.onReady(function () {
 			        }
 				]
 			},
-			
-			
+
+
 			{
 				xtype: 'fieldcontainer',
 				layout: 'hbox',
@@ -370,7 +370,7 @@ Ext.onReady(function () {
 						formatString: '0,0000',
 						tabIndex: -1
 			        }
-				
+
 				]
 			},
 			{
@@ -391,7 +391,7 @@ Ext.onReady(function () {
 							hideOnReadOnly: false,
 				            onClick: function() {
 								var me = this;
-			                
+
 								var msgBox = new Ext.window.MessageBox();
 								msgBox.textField.inputType = 'password';
 								msgBox.prompt('Override date', 'Supervisor code:', function(btn, text){
@@ -410,16 +410,16 @@ Ext.onReady(function () {
 											success: function(response, opts) {
 												var result = Ext.decode(response.responseText);
 												console.log(result);
-											
+
 
 												if(result.length == 1){
-											
+
 													me.field.setReadOnly(false);
 													me.field.triggers['edit'].hide();
-												
+
 												} else {
 													Ext.MessageBox.show({
-														title: 'Authentication error!', 
+														title: 'Authentication error!',
 														msg: 'Invalid approver code.',
 														icon: Ext.MessageBox.WARNING,
 														buttons: Ext.MessageBox.OK
@@ -427,11 +427,11 @@ Ext.onReady(function () {
 												}
 											}
 										});
-									
+
 								    }
 								});
-							
-							
+
+
 				            }
 				        }
 				    },
@@ -442,9 +442,9 @@ Ext.onReady(function () {
 							// update exchange rates
 							redeemPointsPanel.getRate(user.dealershipCode, transactionDate, function(rate){
 								redeemPointsPanel.rate = rate;
-								
+
 								redeemPointsPanel.updateConversionRateUI(rate);
-								
+
 								// recalculate points
 								redeemPointsPanel.calculatePoints();
 							});
@@ -457,73 +457,80 @@ Ext.onReady(function () {
 						fieldLabel: 'Transaction type',
 						labelWidth: 120,
 						flex: 1,
+						editable: false,
 						padding: '0 0 0 5',
-						store: ['New vehicle', 'Parts & Service','Parts (OTC)','Gift Points','Others']
+						store: ['New vehicle', 'Parts & Service','Parts (OTC)','Gift Points','Others'],
+						listeners: {
+							select: function(){
+								redeemPointsPanel.calculatePoints();
+							}
+						}
 					}
-				
+
 				]
 			},
-			
+
 			{
 				xtype: 'label',
 				id: 'txtConversionRate',
 				text: ''
 			}
-			
+
 		],
         buttons: [
 			{
 	            text: 'Confirm',
 	            handler: function() {
-					
-					
-					
+
+
+
 					var txtRedeemPointsPointsPaid = Ext.getCmp('txtRedeemPointsPointsPaid');
 					var pointsPaid = parseInt(txtRedeemPointsPointsPaid.getValue()) + 0;
-					
-					
+
+
 					var txtRedeemPointsPointsBalance = Ext.getCmp('txtRedeemPointsPointsBalance');
 					var pointsBalance = parseInt(txtRedeemPointsPointsBalance.getValue()) + 0;
-					
-					if(pointsBalance < 500)
+
+					//  do not allow redemption of points if balance is less than 500
+					if(pointsBalance < 500 && pointsPaid > 0)
 					{
 						Ext.Msg.show({
-							title:'Sorry!', 
+							title:'Sorry!',
 							msg:'To redeem points, balance must be greater than 500 points.',
 							buttons: Ext.Msg.OK,
 						});
 						return;
 					}
-					
+
 					if(pointsPaid > pointsBalance)
 					{
 						Ext.Msg.show({
-							title:'Sorry!', 
+							title:'Sorry!',
 							msg:'The points you\'re trying to redeem is greater than the current accumulated points.',
 							buttons: Ext.Msg.OK,
 						});
 						return;
 					}
-					
+
 					/*
 					var txtRedeemPointsCashPaid = Ext.getCmp('txtRedeemPointsCashPaid');
 					var cash = parseFloat(txtRedeemPointsCashPaid.getValue() + 0);
-		
+
 					var txtRedeemPointsNewPointsBalance = Ext.getCmp('txtRedeemPointsNewPointsBalance');
 					var newPoints = parseInt(txtRedeemPointsNewPointsBalance.getValue() + 0);
-					
-					
+
+
 					if(newPoints < 500 & cash == 0)
 					{
 						Ext.Msg.show({
-							title:'Sorry!', 
+							title:'Sorry!',
 							msg:'To redeem points, balance must be greater than 500 points.',
 							buttons: Ext.Msg.OK,
 						});
 						return;
 					}
 					*/
-					
+
 					var formPanel = Ext.getCmp('redeemPointsPanel');
 					var id = Ext.getCmp('txtRedeemPointsMemberId').getValue();
 					formPanel.updateMember(function(){
@@ -532,7 +539,7 @@ Ext.onReady(function () {
 						});
 					});
 
-					
+
 	            }
 	   	 	},
 			{
@@ -547,23 +554,23 @@ Ext.onReady(function () {
 			var txtRedeemPointsNewPointsBalance = Ext.getCmp('txtRedeemPointsNewPointsBalance');
 			var txtRedeemPointsORNumber = Ext.getCmp('txtRedeemPointsORNumber');
 			var txtRedeemPointsORAmount = Ext.getCmp('txtRedeemPointsORAmount');
-			
+
 			var txtRedeemPointsMemberId = Ext.getCmp('txtRedeemPointsMemberId');
-			
+
 			var txtRedeemPointsCardNumber = Ext.getCmp('txtRedeemPointsCardNumber');
-			
+
 			var txtRedeemPointsTransactionDate = Ext.getCmp('txtRedeemPointsTransactionDate');
 			var txtRedeemPointsTransactionType = Ext.getCmp('txtRedeemPointsTransactionType');
-			
+
 			var txtRedeemPointsPointsPaid = Ext.getCmp('txtRedeemPointsPointsPaid');
-			
+
 			var txtRedeemPointsPointsBalance = Ext.getCmp('txtRedeemPointsPointsBalance');
 			var txtRedeemPointsNewPointsBalance = Ext.getCmp('txtRedeemPointsNewPointsBalance');
 			var txtRedeemPointsPointsEarned = Ext.getCmp('txtRedeemPointsPointsEarned');
-			
+
 			//var pointsEarned = parseInt(txtRedeemPointsNewPointsBalance.getValue()) - parseInt(txtRedeemPointsPointsBalance.getValue());
-			
-			
+
+
 			var member = Ext.create('Member', {
 				id: txtRedeemPointsMemberId.getValue()
 			});
@@ -571,33 +578,33 @@ Ext.onReady(function () {
 			member.set('pointsBalance', txtRedeemPointsNewPointsBalance.getValue());
 			member.set('orNumber', txtRedeemPointsORNumber.getValue());
 			member.set('orAmount', txtRedeemPointsORAmount.getValue());
-			
+
 			member.set('cardNumber', txtRedeemPointsCardNumber.getValue());
 			member.set('transactionDate', txtRedeemPointsTransactionDate.getValue());
 			member.set('transactionType', txtRedeemPointsTransactionType.getValue());
 			member.set('pointsRedeemed', txtRedeemPointsPointsPaid.getValue());
 			member.set('pointsAccumulated', txtRedeemPointsPointsEarned.getValue());
-		
-			
+
+
 			member.save({
 				success: function(record, operation) {
-					
+
 					if(callback)
 						callback();
-					
+
 					Ext.Msg.alert({
 						title: 'Status',
 						msg: 'Changes saved successfully.',
-						icon: Ext.Msg.QUESTION,
+						icon: Ext.Msg.INFO,
 						buttons: Ext.Msg.OK,
 					});
-					
+
 				}
 			});
 		},
 		loadMember: function(id, callback){
 			Member.load(id, {
-				success: function(record, operation) {	
+				success: function(record, operation) {
 					this.loadRecord(record);
 					this.record = record;
 					if(callback)
@@ -611,51 +618,53 @@ Ext.onReady(function () {
 			var txtRedeemPointsCashPaid = Ext.getCmp('txtRedeemPointsCashPaid');
 
 			var txtRedeemPointsPointsPaid = Ext.getCmp('txtRedeemPointsPointsPaid');
-			
+
 			var txtRedeemPointsPointsBalance = Ext.getCmp('txtRedeemPointsPointsBalance');
 			var txtRedeemPointsNewPointsBalance = Ext.getCmp('txtRedeemPointsNewPointsBalance');
-			
+
 			var txtRedeemPointsPointsEarned = Ext.getCmp('txtRedeemPointsPointsEarned');
-			
+
 			var orAmount = parseFloat(txtRedeemPointsORAmount.getValue());
 			var cash = parseFloat(txtRedeemPointsCashPaid.getValue() + 0);
 			//var pointsRequired = parseInt((orAmount - cash)*100);
 			var pointsPaid = parseInt(orAmount - cash);
 			var pointsBalance = parseInt(txtRedeemPointsPointsBalance.getValue());
-			
-			
+
+
 			// if E then points = cash/20
 			// if P then points = cash/15
 			var type = redeemPointsPanel.getForm().getRecord().data.type;
-			
-			
+
+
 			// points exchange rate from server
 			var eliteRate = redeemPointsPanel.rate.elite;
 			var platinumEliteRate = redeemPointsPanel.rate.platinumElite;
-			
+
 			var redeemPoints = parseInt(pointsBalance - pointsPaid);
-			//var addPoints = parseInt(pointsBalance + (cash / (type=='P'? eliteRate : platinumEliteRate )));
+
 			var addPoints = parseInt((cash / (type =='P'? platinumEliteRate : eliteRate )));
-			
-			//var pointsEarned = parseInt(cash / (type=='P'? eliteRate : platinumEliteRate ));
-			//var addPoints = parseInt(pointsBalance + pointsEarned);
-			
-			//var newPoints = (pointsPaid > 0 ? redeemPoints : addPoints);
-			
-			//var newPoints = redeemPoints + addPoints;
-			
+
+			// no points earned if this is a new vehicle
+			var txtRedeemPointsTransactionType = Ext.getCmp('txtRedeemPointsTransactionType');
+			if(txtRedeemPointsTransactionType.getValue() === 'New vehicle'){
+				var txtRedeemPointsPointsEarned = Ext.getCmp('txtRedeemPointsPointsEarned');
+				addPoints = 0;
+				txtRedeemPointsPointsEarned.setValue(addPoints);
+			}
+
+
 			var newPoints = (pointsBalance - pointsPaid) + addPoints;
-			
+
 			if(addPoints > 0)
 				txtRedeemPointsPointsEarned.setValue(addPoints);
 			if(pointsPaid >= 0)
 				txtRedeemPointsPointsPaid.setValue(pointsPaid);
 			if(newPoints > 0)
 				txtRedeemPointsNewPointsBalance.setValue(newPoints);
-			
+
 		}
     });
-	
+
 	var memberEditPanel = Ext.create('Ext.form.Panel', {
 		id: 'memberEditPanel',
         frame: true,
@@ -675,7 +684,7 @@ Ext.onReady(function () {
 	            fieldLabel: 'Loyalty card no',
 				width: 300,
 				emptyText: '0000-0000-0000-0000',
-	        }, 
+	        },
 			{
 				xtype: 'fieldcontainer',
 				layout: 'hbox',
@@ -688,7 +697,7 @@ Ext.onReady(function () {
 						width: 200,
 						readOnly: true,
 						hidden: true
-			        }, 
+			        },
 					{
 						xtype: 'combo',
 						id: 'txtEditType',
@@ -786,8 +795,8 @@ Ext.onReady(function () {
 							mainPanel.switch(memberPanel);
 						});
 					});
-					
-					
+
+
 	            }
 	   	 	},
 			{
@@ -799,7 +808,7 @@ Ext.onReady(function () {
 		],
 		loadMember: function(id, callback){
 			Member.load(id, {
-				success: function(record, operation) {	
+				success: function(record, operation) {
 					this.loadRecord(record);
 					this.record = record;
 					if(callback)
@@ -807,22 +816,22 @@ Ext.onReady(function () {
 				},
 				scope: this
 			});
-		
+
 		},
 		updateMember: function(callback){
 			var formPanel = Ext.getCmp('memberEditPanel');
 			var member = formPanel.record;
 
 			formPanel.updateRecord(member);
-			
+
 			console.log(member);
-			
+
 			member.save({
 				success: function(record, operation){
-					
+
 					if(callback)
 						callback();
-					
+
 					Ext.Msg.alert({
 						title: 'Status',
 						msg: 'Changes saved successfully.',
@@ -855,7 +864,7 @@ Ext.onReady(function () {
 	            fieldLabel: 'Loyalty card no',
 				width: 300,
 				emptyText: '0000-0000-0000-0000',
-	        }, 
+	        },
 			{
 				xtype: 'fieldcontainer',
 				layout: 'hbox',
@@ -960,7 +969,7 @@ Ext.onReady(function () {
 			{
 	            text: 'Save',
 	            handler: function() {
-					
+
 					var newMember = Ext.create('Member', {
 						lastname: Ext.getCmp('txtNewLastname').getValue(),
 						firstname: Ext.getCmp('txtNewFirstname').getValue(),
@@ -968,7 +977,7 @@ Ext.onReady(function () {
 						mobile: Ext.getCmp('txtNewMobile').getValue(),
 						mobile2: Ext.getCmp('txtNewMobile2').getValue(),
 						email: Ext.getCmp('txtNewEmail').getValue(),
-						pointsBalance: Ext.getCmp('txtNewPointsBalance').getValue(), 
+						pointsBalance: Ext.getCmp('txtNewPointsBalance').getValue(),
 						cardNumber: Ext.getCmp('txtNewCardNumber').getValue(),
 						address: Ext.getCmp('txtNewAddress').getValue(),
 						type: Ext.getCmp('cmbNewType').getValue(),
@@ -980,7 +989,7 @@ Ext.onReady(function () {
 							memberPanel.loadMember(id, function(){
 								mainPanel.switch(memberPanel);
 							});
-							
+
 						}
 					});
 	            }
@@ -994,7 +1003,7 @@ Ext.onReady(function () {
 		],
 		loadMember: function(id, callback){
 			Member.load(id, {
-				success: function(record, operation) {	
+				success: function(record, operation) {
 					this.loadRecord(record);
 					this.record = record;
 					if(callback)
@@ -1002,10 +1011,10 @@ Ext.onReady(function () {
 				},
 				scope: this
 			});
-			
+
 		}
     });
-	
+
 	var memberPanel = Ext.create('Ext.form.Panel', {
 		id: 'memberPanel',
         frame: true,
@@ -1026,7 +1035,7 @@ Ext.onReady(function () {
 				width: 300,
 				emptyText: '0000-0000-0000-0000',
 				readOnly: true
-	        }, 
+	        },
 			{
 				xtype: 'fieldcontainer',
 				layout: 'hbox',
@@ -1039,7 +1048,7 @@ Ext.onReady(function () {
 						width: 200,
 						readOnly: true,
 						hidden: true
-			        }, 
+			        },
 					{
 						xtype: 'combo',
 						fieldLabel: 'Type',
@@ -1138,21 +1147,21 @@ Ext.onReady(function () {
 				handler: function() {
 
 					var id = memberPanel.getForm().getValues()['id'];
-					
+
 					/*
 					var balance = memberPanel.getForm().getValues()['pointsBalance'];
-			
+
 					if(!(parseFloat(balance) >= 500)){
 						Ext.Msg.show({
-							title:'Sorry!', 
+							title:'Sorry!',
 							msg:'To redeem points, balance must be greater than 500 points.',
 							buttons: Ext.Msg.OK,
 						});
 						return;
 					}
 					*/
-			
-					redeemPointsPanel.reset();	
+
+					redeemPointsPanel.reset();
 					redeemPointsPanel.loadMember(id, function(){
 						mainPanel.switch(redeemPointsPanel);
 					});
@@ -1161,7 +1170,7 @@ Ext.onReady(function () {
 			{
 	            text: 'Transfer points',
 	            handler: function() {
-				
+
 	            },
 				hidden: true
 	   	 	},
@@ -1172,11 +1181,11 @@ Ext.onReady(function () {
 					memberEditPanel.loadMember(id, function(){
 						mainPanel.switch(memberEditPanel);
 					});
-					
+
 	            }
 	   	 	},
-			{ 
-				xtype: 'component', flex: 1 
+			{
+				xtype: 'component', flex: 1
 			},
 			{
 	            text: 'Close',
@@ -1187,7 +1196,7 @@ Ext.onReady(function () {
 		],
 		loadMember: function(id, callback){
 			Member.load(id, {
-				success: function(record, operation) {	
+				success: function(record, operation) {
 					this.loadRecord(record);
 					this.record = record;
 					if(callback)
@@ -1195,10 +1204,10 @@ Ext.onReady(function () {
 				},
 				scope: this
 			});
-			
+
 		}
     });
-	
+
 	var searchResultGrid = {
 		id: 'searchResultGrid',
 		xtype: 'grid',
@@ -1226,7 +1235,7 @@ Ext.onReady(function () {
 		     fields: ['id', 'lastname', 'firstname']
 		})
     };
-	
+
 	var searchResultPanel = Ext.create('Ext.form.Panel', {
         frame: true,
         title: 'Multiple match found',
@@ -1243,7 +1252,7 @@ Ext.onReady(function () {
 					// get selected member
 					var grid = Ext.getCmp('searchResultGrid');
 					var selection = grid.getSelectionModel().getSelection();
-					
+
 					if(selection.length > 0)
 					{
 						var id = selection[0].data.id;
@@ -1261,7 +1270,7 @@ Ext.onReady(function () {
 	   	 	}
 		]
     });
-	
+
 	var searchPanel = Ext.create('Ext.form.Panel', {
         frame: true,
         title: 'Search members',
@@ -1281,7 +1290,7 @@ Ext.onReady(function () {
 				width: 200,
 				margin: '0 0 20 0',
 				hidden: true
-	        }, 
+	        },
 			{
 	            xtype: 'textfield',
 				id: 'txtSearchMemberCardNumber',
@@ -1297,11 +1306,11 @@ Ext.onReady(function () {
 							var btnSearch = Ext.getCmp('btnSearch');
 							btnSearch.click();
 						}
-						
+
 					}
 				}
-	        }, 	
-			
+	        },
+
 			{
 				xtype: 'fieldcontainer',
 	            fieldLabel: 'Name',
@@ -1321,7 +1330,7 @@ Ext.onReady(function () {
 									var btnSearch = Ext.getCmp('btnSearch');
 									btnSearch.click();
 								}
-						
+
 							}
 						}
 		            },
@@ -1338,7 +1347,7 @@ Ext.onReady(function () {
 									var btnSearch = Ext.getCmp('btnSearch');
 									btnSearch.click();
 								}
-						
+
 							}
 						}
 		            },
@@ -1354,7 +1363,7 @@ Ext.onReady(function () {
 									var btnSearch = Ext.getCmp('btnSearch');
 									btnSearch.click();
 								}
-						
+
 							}
 						}
 		            }
@@ -1377,7 +1386,7 @@ Ext.onReady(function () {
 									var btnSearch = Ext.getCmp('btnSearch');
 									btnSearch.click();
 								}
-						
+
 							}
 						}
 					},
@@ -1395,7 +1404,7 @@ Ext.onReady(function () {
 									var btnSearch = Ext.getCmp('btnSearch');
 									btnSearch.click();
 								}
-						
+
 							}
 						}
 					}
@@ -1413,7 +1422,7 @@ Ext.onReady(function () {
 							var btnSearch = Ext.getCmp('btnSearch');
 							btnSearch.click();
 						}
-						
+
 					}
 				}
 	        }
@@ -1430,9 +1439,9 @@ Ext.onReady(function () {
 			{
 	            text: 'Search',
 				id: 'btnSearch',
-				handler: function(){ this.click(); }, 
+				handler: function(){ this.click(); },
 	            click: function() {
-					
+
 					var params = {};
 					var items = ['txtSearchMemberCardNumber', 'txtSearchLastname', 'txtSearchFirstname', 'txtSearchMiddlename','txtSearchMobile','txtSearchMobile2','txtSearchEmail'];
 					for(var item in items ){
@@ -1441,7 +1450,7 @@ Ext.onReady(function () {
 							params[field.name] = field.getValue();
 					}
 					if(Object.keys(params).length > 0){
-						
+
 						Ext.Ajax.request({
 							disableCaching: false,
 							method: 'GET',
@@ -1452,24 +1461,24 @@ Ext.onReady(function () {
 
 								if(result.length == 0)
 									Ext.MessageBox.show({title: 'Search result', msg: 'No match found!'});
-								
+
 								if(result.length == 1){
 									var id = result[0]['id'];
 									memberPanel.loadMember(id, function(){
 										mainPanel.switch(memberPanel);
 									});
-									
+
 								}
-								
+
 								if(result.length > 1){
 									mainPanel.switch(searchResultPanel);
 									var store = Ext.getCmp('searchResultGrid').getStore();
 									store.loadData(result);
-									
+
 								}
 
 							}
-					   
+
 						});
 					}
 	            }
@@ -1509,7 +1518,7 @@ Ext.onReady(function () {
 						});
 		            }
 				}
-			
+
 			]
 		},
 		width: 750,
@@ -1519,16 +1528,16 @@ Ext.onReady(function () {
 		activeItem: 0,
 		items: [loginPanel, searchPanel, searchResultPanel, memberPanel, memberEditPanel],
 		switch: function(panel){
-			
+
 			Ext.getCmp('mainPanel').getLayout().setActiveItem(panel);
-			
+
 			var btnLogout = Ext.getCmp('btnLogout');
 			btnLogout.setHidden(panel == loginPanel);
-			
-		
+
+
 		}
 	};
-	
+
 	Ext.create('Ext.container.Viewport', {
 		id: 'viewport',
 	    layout: {
@@ -1538,5 +1547,5 @@ Ext.onReady(function () {
 	    },
 		items: mainPanel
 	});
-	
+
 });
