@@ -178,7 +178,7 @@ Ext.onReady(function () {
 
 			// reflect this in UI
 			var txtConversionRate = Ext.getCmp('txtConversionRate');
-			var amount = (type === 'P' ? rate.platinumElite : elite);
+			var amount = (type === 'P' ? rate.platinumElite : rate.elite);
 			amount = Ext.util.Format.number(parseFloat(amount), '0,000.00');
 			txtConversionRate.setText('Conversion Rate: Php ' + amount + ' = 1 point');
 		},
