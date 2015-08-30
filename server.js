@@ -1,8 +1,8 @@
 // web server
 var express = require('express');
 var app = express();
-var port = process.env.OPENSHIFT_NODEJS_PORT || 8080;
-var ip = process.env.OPENSHIFT_NODEJS_IP || '127.0.0.1';
+var port = process.env.OPENSHIFT_NODEJS_PORT || 80;
+var ip = process.env.OPENSHIFT_NODEJS_IP || '172.16.17.100';
 var router = express.Router();
 var staticDir = __dirname + '/static';
 
@@ -23,7 +23,7 @@ var mysql = require ('mysql');
 var pool = mysql.createPool({
 	host: process.env.OPENSHIFT_MYSQL_DB_HOST || 'localhost',
 	user: 'demo',
-	password: 'demo',
+	password: '*ccsvr3254',
 	database: 'autohub'
 });
 //
