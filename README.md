@@ -125,5 +125,5 @@ mysql:
 1. Install Node.js from ```http://nodejs.org/```
 2. Install forever. From the command line: ```npm install forever -g```
 3. Clone autohub app: git clone https://github.com/ghelobytes/autohub.git
-4. Start app: ```forever server.js```
-5. Visit ```http://localhost:8080``` from the browser
+4. Start app: ```forever start server.js```
+5. Visit ```http://localhost:8080/app``` from the browser
